@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="kotlinfx-core">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/kotlinfx-core.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
