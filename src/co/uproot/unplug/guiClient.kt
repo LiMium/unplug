@@ -16,10 +16,10 @@ import javafx.concurrent.Worker
 import co.uproot.unplug.*
 
 fun main(args: Array<String>) {
-  Application.launch(javaClass<JMatrix>())
+  Application.launch(javaClass<UnplugApp>())
 }
 
-class JMatrix : Application() {
+class UnplugApp : Application() {
   override fun start(stage: Stage?) {
     val loginService = LoginService()
     val userId = TextField { promptText = "Eg: bob" }
