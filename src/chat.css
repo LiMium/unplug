@@ -1,0 +1,8 @@
+.chat-message-meta {
+    -fx-fill: #999;
+}
+
+.chat-message-error {
+    -fx-fill: #f33;
+}
+
