@@ -2,7 +2,7 @@
 
 A cross-platform [matrix](https://matrix.org) client.
 
-### Howto run
+### How to run
 Download the `.jar` file from the [release page](https://github.com/UprootLabs/unplug/releases). Then,
 
 ```
@@ -16,7 +16,7 @@ This will launch the GUI. A CLI version will soon be available and launching it 
 java -jar unplug-version.jar -c
 ```
 
-### Chat
+### Discuss
 [#unplug:matrix.org](https://matrix.org/beta/#/room/#unplug:matrix.org)
 
 ### Status
