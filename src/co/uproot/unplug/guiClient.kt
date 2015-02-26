@@ -43,7 +43,7 @@ class UnplugApp : Application() {
     val password = PasswordField() {text = passwordInit}
     password.setOnAction {
       val serverText = serverCombo.editor.text()
-      startLogin(loginService, serverText, stage)
+      startLogin(loginService, serverText, stage!!)
     }
 
     val login = Button("Login")
@@ -65,7 +65,7 @@ class UnplugApp : Application() {
 
     login.setOnAction {
       val serverText = serverCombo.editor.text()
-      startLogin(loginService, serverText, stage)
+      startLogin(loginService, serverText, stage!!)
     }
 
     loginForm.disableProperty().bind(loginService.stateProperty().isNotEqualTo(Worker.State.READY))
@@ -84,7 +84,7 @@ class UnplugApp : Application() {
     }.show()
   }
 
-  private fun startLogin(loginService: LoginService, serverText:String, stage: Stage?) {
+  private fun startLogin(loginService: LoginService, serverText:String, stage: Stage) {
     // logginIn u true
     loginService.baseURL = "$serverText/"
     loginService.setOnSucceeded {
@@ -93,7 +93,8 @@ class UnplugApp : Application() {
         // logginIn u false
         loginService.reset()
       } else {
-        postLogin(stage!!, loginResult)
+        stage.title = "[unplug] " + loginService.userName.get() + " : " + serverText
+        postLogin(stage, loginResult)
       }
     }
     loginService.setOnFailed {
