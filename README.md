@@ -3,7 +3,7 @@
 A cross-platform [matrix](https://matrix.org) client.
 
 ### Howto run
-Download the `.jar` file from the release page. Then,
+Download the `.jar` file from the [release page](https://github.com/UprootLabs/unplug/releases). Then,
 
 ```
 java -jar unplug-version.jar
