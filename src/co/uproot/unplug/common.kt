@@ -70,7 +70,8 @@ class AppState() {
           }
           else -> {
             System.err.println("Unhandled state type: " + state.type)
-            Thread.dumpStack()
+            System.err.println(Thread.currentThread().getStackTrace().take(2).joinToString("\n"))
+            System.err.println()
           }
         }
       }
