@@ -261,7 +261,11 @@ class MessageFormatCell(val containerWidthProperty: ObservableNumberValue) : Lis
     } else {
       when (message.type) {
         "m.room.create" -> Pair("Room created by " + message.content.getString("creator", "(unexpected missing creator)"), "chat-message-meta")
-        "m.room.member" -> Pair("Joined: " + (message.content.getString("displayname", null)?:message.userId), "chat-message-meta")
+        "m.room.member" -> {
+          val status = if(message.content.getString("membership", "") == "join") "Joined" else "Left"
+          val displayName = message.content.getString("displayname", null)?:message.userId
+          Pair("$status: $displayName", "chat-message-meta")
+        }
         "m.room.message" -> Pair(message.userId + ": " + message.content.getString("body", "(unexpected empty body)"), null)
 
         else -> {
