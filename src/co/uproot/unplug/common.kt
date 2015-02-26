@@ -59,6 +59,15 @@ class AppState() {
           "m.room.create" -> {
             // TODO
           }
+          "m.room.topic" -> {
+            // TODO
+          }
+          "m.room.name" -> {
+            // TODO
+          }
+          "m.room.config" -> {
+            // TODO
+          }
           else -> {
             System.err.println("Unhandled state type: " + state.type)
             Thread.dumpStack()
