@@ -9,7 +9,12 @@ Download the `.jar` file from the [release page](https://github.com/UprootLabs/u
 java -jar unplug-version.jar
 ```
 
-This will launch the GUI. A CLI version will soon be available and launching it would be as simple as passing
+This will launch the GUI. You can add additional options like this:
+```
+java -jar unplug-version.jar [userId] [server] [password]
+```
+
+A CLI version will soon be available and launching it would be as simple as passing
 `-c` as an argument:
 
 ```
