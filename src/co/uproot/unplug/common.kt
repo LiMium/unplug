@@ -36,42 +36,79 @@ class AppState() {
       getRoomChatMessages(room.id).setAll(room.chatMessages())
       val users = getRoomUsers(room.id)
       room.states.forEach {(state: State) ->
-        if (state.type == "m.room.member" && state.content.getString("membership", "") == "join") {
-          val us = UserState(state.userId)
-          val displayName = state.content.get("displayname")?.let { if (it.isString()) it.asString() else null } ?: state.userId
-          us.displayName.setValue(displayName)
-          users.add(us)
+        when (state.type) {
+          "m.room.member" -> {
+            if (state.content.getString("membership", "") == "join") {
+              val us = UserState(state.userId)
+              val displayName = state.content.get("displayname")?.let { if (it.isString()) it.asString() else null } ?: state.userId
+              us.displayName.setValue(displayName)
+              users.add(us)
+            } else {
+              // users.removeFirstMatching { it.id == state.userId }
+            }
+          }
+          "m.room.aliases" -> {
+            // TODO
+          }
+          "m.room.power_levels" -> {
+            // TODO
+          }
+          "m.room.join_rules" -> {
+            // TODO
+          }
+          "m.room.create" -> {
+            // TODO
+          }
+          else -> {
+            System.err.println("Unhandled state type: " + state.type)
+            Thread.dumpStack()
+          }
         }
       }
     }
   }
 
   fun processEventsResult(eventResult: EventResult) {
-    eventResult.roomMessageList.forEach { room ->
-      getRoomChatMessages(room.id).addAll(room.messages)
-    }
-    eventResult.userMessages.forEach { userMsg ->
-      when(userMsg.type) {
+    eventResult.messages.forEach { message ->
+      when(message.type) {
         "m.typing" -> {
-          val usersTyping = userMsg.content.getArray("user_ids").map { it.asString() }
+          val usersTyping = message.content.getArray("user_ids").map { it.asString() }
           roomUserStore.values().forEach { users ->
-            users.filter { usersTyping.contains(it.id) }.forEach { it.typing.set(true) }
+            users.forEach { it.typing.set(usersTyping.contains(it.id)) }
           }
         }
         "m.presence" -> {
           roomUserStore.values().forEach { users ->
-            val userId = userMsg.content.getString("user_id", null)
-            users.firstOrNull { it.id == userId }?.let { it.present.set(true) }
+            val userId = message.content.getString("user_id", null)
+            users.firstOrNull { it.id == userId }?.let { it.present.set(message.content.getString("presence", "") == "online") }
+          }
+        }
+        "m.room.message" -> {
+          if (message.roomId != null) {
+            getRoomChatMessages(message.roomId).add(message)
+          }
+        }
+        "m.room.member" -> {
+          if (message.roomId != null) {
+            val users = getRoomUsers(message.roomId)
+            getRoomChatMessages(message.roomId).add(message)
+            if (message.content.getString("membership", "") == "join") {
+              val us = UserState(message.userId)
+              val displayName = message.content.get("displayname")?.let { if (it.isString()) it.asString() else null } ?: message.userId
+              us.displayName.setValue(displayName)
+              users.add(us)
+            } else {
+              users.removeFirstMatching { it.id == message.userId }
+            }
           }
         }
         else -> {
-          println("Unhandled message: " + userMsg)
+          println("Unhandled message: " + message)
 
         }
 
       }
     }
-
   }
 
   synchronized private fun getRoomChatMessages(roomId: String): ObservableList<Message> {
@@ -106,6 +143,16 @@ class AppState() {
       return messages
     }
 
+  }
+
+}
+
+fun <T> ObservableList<T>.removeFirstMatching(predicate: (T) -> Boolean) {
+  for ((index,value) in this.withIndex()) {
+    if (predicate(value)) {
+      this.remove(index)
+      break;
+    }
   }
 
 }

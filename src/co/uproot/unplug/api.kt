@@ -14,7 +14,7 @@ data class AccessToken(val token:String)
 data class Message(
   val id: String?,
   val ts: Long,
-  val roomId: String,
+  val roomId: String?,
   val type: String,
   val userId: String,
   val content: JsonObject)
@@ -49,7 +49,7 @@ fun JsonObject.getArray(name:String):JsonArray {
   return this.get(name).asArray()
 }
 
-class EventResult(val userMessages: List<Message>, val roomMessageList: List<Room>, val end: String)
+class EventResult(val messages: List<Message>, val end: String)
 
 // TODO: Change API to be fully type-safe, and not return JSON objects
 class API(val baseURL: String) {
@@ -133,21 +133,7 @@ class API(val baseURL: String) {
     val responseStr = net.doGet(eventURL)
     val jsonObj = JsonObject.readFrom(responseStr)
     val chunks = jsonObj.getArray("chunk")
-    val messageChunks = chunks.stream().map{it.asObject()}.filter {it.getString("type", null) == "m.room.message"}.toList()
-    val groupedMessages = messageChunks.groupBy { it.getString("room_id", null) }
-    val roomList = groupedMessages.map {(entry):Room ->
-      val (key, value) = entry
-      Room(key, emptyList(), parseChunks(value).toLinkedList(), emptyList())
-    }
-
-    val userChunks = chunks.stream().map{it.asObject()}.filter{
-      val type = it.getString("type", null)
-      type == "m.typing" || type == "m.presence"
-    }.toList()
-
-    val parsedUserChunks = parseChunks(userChunks)
-
-    return EventResult(parsedUserChunks, roomList, jsonObj.getString("end", null))
+    return EventResult(parseChunks(chunks.map{it.asObject()}), jsonObj.getString("end", null))
   }
 
   fun parseChunks(chunk: List<JsonObject>): List<Message> {
@@ -155,7 +141,8 @@ class API(val baseURL: String) {
       val userId = messageObj.getString("user_id", "")
       val type = messageObj.getString("type", "")
       val eventId:String? = messageObj.getString("event_id", null)
-      Message(eventId, messageObj.getLong("origin_server_ts", 0L), "", type, userId, messageObj.getObject("content"))
+      val roomId:String? = messageObj.getString("room_id", null)
+      Message(eventId, messageObj.getLong("origin_server_ts", 0L), roomId, type, userId, messageObj.getObject("content"))
     }
     return messageList
   }
