@@ -16,21 +16,34 @@ import javafx.concurrent.Worker
 import co.uproot.unplug.*
 
 fun main(args: Array<String>) {
-  Application.launch(javaClass<UnplugApp>())
+  Application.launch(javaClass<UnplugApp>(), *args)
 }
 
 class UnplugApp : Application() {
   override fun start(stage: Stage?) {
+    val args = getParameters().getRaw()
+    val userIdInit = if (args.size() > 0) args[0] else ""
+    val serverInit = if (args.size() > 1) args[1] else null
+    val passwordInit = if (args.size() > 2) args[2] else ""
+
+    println("args:" + args)
+    println("userIdInit:" + userIdInit)
+
     val loginService = LoginService()
-    val userId = TextField { promptText = "Eg: bob" }
+    val userId = TextField(userIdInit) { promptText = "Eg: bob" }
 
     // TODO: Use the auto-complete box from here: https://github.com/privatejava/javafx-autocomplete-field
     val serverCommonUrls = FXCollections.observableArrayList("https://matrix.org", "http://localhost:8008")
     val serverCombo = ComboBox(serverCommonUrls) {
       editable = true
-      getSelectionModel().select(0)
+
+      if (serverInit == null) {
+        getSelectionModel().select(0)
+      } else {
+        getEditor().text = serverInit
+      }
     }
-    val password = PasswordField()
+    val password = PasswordField() {text = passwordInit}
     password.setOnAction {
       val serverText = serverCombo.editor.text()
       startLogin(loginService, serverText, stage)
