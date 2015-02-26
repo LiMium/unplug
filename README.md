@@ -30,6 +30,7 @@ However, later versions will persist preferences, chat history, etc.
 #### Roadmap
 
 ##### Version 0.1
+* Join / Leave chat rooms
 * History back-filling (scroll up to see earlier chat messages)
 * Sorting of Users and Room names by activity
 * Some UI polish
@@ -37,7 +38,7 @@ However, later versions will persist preferences, chat history, etc.
 ##### Version 0.2 and beyond
 * Persistence of preferences, etc
 * CLI interface
-* UI polish
+* More UI polish
 
 ### Legal
 * License: GPL3
