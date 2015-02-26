@@ -31,14 +31,19 @@ However, later versions will persist preferences, chat history, etc.
 
 ##### Version 0.1
 * Join / Leave chat rooms
+* Handle all types of events (notices, etc)
 * History back-filling (scroll up to see earlier chat messages)
 * Sorting of Users and Room names by activity
+* User presence update (timeout and mark them inactive, etc)
 * Some UI polish
 
-##### Version 0.2 and beyond
+##### Version 0.2+
 * Persistence of preferences, etc
 * CLI interface
 * More UI polish
+
+##### Version 1.0 and beyond
+* Audio / Video
 
 ### Legal
 * License: GPL3
