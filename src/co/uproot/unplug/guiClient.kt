@@ -26,9 +26,6 @@ class UnplugApp : Application() {
     val serverInit = if (args.size() > 1) args[1] else null
     val passwordInit = if (args.size() > 2) args[2] else ""
 
-    println("args:" + args)
-    println("userIdInit:" + userIdInit)
-
     val loginService = LoginService()
     val userId = TextField(userIdInit) { promptText = "Eg: bob" }
 
