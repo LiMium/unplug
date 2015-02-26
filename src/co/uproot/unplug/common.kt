@@ -51,16 +51,24 @@ class AppState() {
       getRoomChatMessages(room.id).addAll(room.messages)
     }
     eventResult.userMessages.forEach { userMsg ->
-      if (userMsg.type == "m.typing") {
-        val usersTyping = userMsg.content.getArray("user_ids").map { it.asString() }
-        roomUserStore.values().forEach { users ->
-          users.filter { usersTyping.contains(it.id) }.forEach { it.typing.set(true) }
+      when(userMsg.type) {
+        "m.typing" -> {
+          val usersTyping = userMsg.content.getArray("user_ids").map { it.asString() }
+          roomUserStore.values().forEach { users ->
+            users.filter { usersTyping.contains(it.id) }.forEach { it.typing.set(true) }
+          }
         }
-      } else if (userMsg.type == "m.presence") {
-        roomUserStore.values().forEach { users ->
-          val userId = userMsg.content.getString("user_id", null)
-          users.firstOrNull { it.id == userId }?.let { it.present.set(true) }
+        "m.presence" -> {
+          roomUserStore.values().forEach { users ->
+            val userId = userMsg.content.getString("user_id", null)
+            users.firstOrNull { it.id == userId }?.let { it.present.set(true) }
+          }
         }
+        else -> {
+          println("Unhandled message: " + userMsg)
+
+        }
+
       }
     }
 
