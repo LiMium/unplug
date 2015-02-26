@@ -181,6 +181,8 @@ class UnplugApp : Application() {
       }
     })
 
+    stage.centerOnScreen()
+
     val syncService = SyncService(loginResult)
     status.bind(syncService.messageProperty())
     syncService.setOnSucceeded {
