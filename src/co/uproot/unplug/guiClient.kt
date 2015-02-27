@@ -76,6 +76,7 @@ class UnplugApp : Application() {
 
     Stage(stage, title="unplug") {
       scene = Scene {
+        stylesheets.add("/chat.css")
         root = VBox(spacing=10.0, padding=Insets(10.0)) {
           + loginForm
           + loginStatus
@@ -232,7 +233,7 @@ class UserFormatCell() : ListCell<UserState>() {
 
   override fun updateItem(us: UserState?, empty: Boolean) {
     super.updateItem(us, empty)
-    val (renderText, renderClass) = if (us == null) {
+    val (renderText, renderClasses) = if (us == null) {
       Pair("", null)
     } else {
       val typing = us.typing.get()
@@ -240,7 +241,7 @@ class UserFormatCell() : ListCell<UserState>() {
       val typingStr = if(typing) "(typing)" else ""
       val presentStr = if(present) "(present)" else ""
       val renderClass = if(typing || present) {
-        array(if(typing) "typing" else "", if(present) "present" else "").join(" ")
+        array(if(typing) "user-typing" else "", if(present) "user-present" else "")
       } else {
         null
       }
@@ -248,8 +249,10 @@ class UserFormatCell() : ListCell<UserState>() {
     }
 
     setGraphic(Text(renderText) {
-      if (renderClass != null) {
-        getStyleClass().add(renderClass)
+      if (renderClasses != null) {
+        renderClasses.forEach {getStyleClass().add(it)}
+      } else {
+        getStyleClass().add("unplug-text")
       }
     })
   }
@@ -269,7 +272,7 @@ class MessageFormatCell(val containerWidthProperty: ObservableNumberValue) : Lis
           val displayName = message.content.getString("displayname", null)?:message.userId
           Pair("$status: $displayName", "chat-message-meta")
         }
-        "m.room.message" -> Pair(message.userId + ": " + message.content.getString("body", "(unexpected empty body)"), null)
+        "m.room.message" -> Pair(message.userId + ": " + message.content.getString("body", "(unexpected empty body)"), "chat-message-text")
 
         else -> {
           Pair("Unknown message type: ${message.type}", "chat-message-error")
@@ -280,6 +283,8 @@ class MessageFormatCell(val containerWidthProperty: ObservableNumberValue) : Lis
     setGraphic(Text(renderText) {
       if (renderClass != null) {
         getStyleClass().add(renderClass)
+      } else {
+        getStyleClass().add("unplug-text")
       }
       setWrapText(true)
       wrappingWidthProperty().bind(containerWidthProperty)

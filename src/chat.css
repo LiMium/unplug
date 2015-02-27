@@ -1,8 +1,41 @@
+.root {
+    -fx-base: rgb(30, 30, 30);
+    -fx-background: rgb(30, 30, 30);
+    -fx-control-inner-background:  rgb(32, 32, 32);
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: rgb(35, 38, 35);
+    -fx-box-border: transparent;
+    -fx-accent: rgb(30, 30, 30);
+    -fx-selection-bar-non-focused: rgb(30, 30, 30);
+    -fx-cell-focus-inner-border: #99999922;
+    -fx-shadow-highlight-color: transparent;
+}
+
+.text-input {
+    -fx-faint-focus-color: rgb(35, 48, 35);
+    -fx-background-insets: -0.2, 1, -1.4, 1;
+}
+
+.unplug-text {
+  -fx-fill: #eee;
+}
+
+.chat-message-text {
+  -fx-fill: #fff;
+}
+
 .chat-message-meta {
-    -fx-fill: #999;
+  -fx-fill: #999;
 }
 
 .chat-message-error {
-    -fx-fill: #f33;
+  -fx-fill: #f33;
 }
 
+.user-typing {
+  -fx-fill: #999;
+}
+
+.user-present {
+  -fx-fill: #efe;
+}
