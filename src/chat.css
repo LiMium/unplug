@@ -1,12 +1,12 @@
 .root {
-    -fx-base: rgb(30, 30, 30);
-    -fx-background: rgb(30, 30, 30);
-    -fx-control-inner-background:  rgb(32, 32, 32);
+    -fx-base: rgb(20, 20, 20);
+    -fx-background: rgb(22, 22, 22);
+    -fx-control-inner-background:  rgb(30, 30, 30);
     -fx-focus-color: transparent;
-    -fx-faint-focus-color: rgb(35, 38, 35);
+    -fx-faint-focus-color: rgb(25, 38, 25);
     -fx-box-border: transparent;
-    -fx-accent: rgb(30, 30, 30);
-    -fx-selection-bar-non-focused: rgb(30, 30, 30);
+    -fx-accent: rgb(70, 70, 70);
+    -fx-selection-bar-non-focused: rgb(24, 24, 24);
     -fx-cell-focus-inner-border: #99999922;
     -fx-shadow-highlight-color: transparent;
 }
@@ -14,6 +14,11 @@
 .text-input {
     -fx-faint-focus-color: rgb(35, 48, 35);
     -fx-background-insets: -0.2, 1, -1.4, 1;
+}
+
+.button {
+    -fx-faint-focus-color: rgb(35, 48, 35);
+    -fx-background-insets: -0.2, 1, 2, -1.4, 1;
 }
 
 .unplug-text {
