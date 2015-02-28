@@ -54,4 +54,7 @@ However, later versions will persist preferences, chat history, etc.
 ### Legal
 * License: GPL3
 * Copyright: Uproot Labs 2015
-* CLA: TODO
+
+#### CLA
+All contributions to this repo implicitly assign the copyright of those changes to Uproot Labs. In return, Uproot Labs
+guarantees that all contributions to this repo will always be available under an open-source License.
