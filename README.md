@@ -56,5 +56,11 @@ However, later versions will persist preferences, chat history, etc.
 * Copyright: Uproot Labs 2015
 
 #### CLA
-All contributions to this repo implicitly assign the copyright of those changes to Uproot Labs. In return, Uproot Labs
-guarantees that all contributions to this repo will always be available under an open-source License.
+When sending contributions to this repo you grant to Uproot Labs and the users of
+this software a perpetual, worldwide, non-exclusive, no-charge, royalty-free,
+irrevocable copyright license to reproduce, prepare derivative works of,
+publicly display, publicly perform, sublicense, and distribute Your
+Contributions and such derivative works.
+
+Uproot Labs guarantees that all contributions to this repo will always be
+available under an open-source License.
