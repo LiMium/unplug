@@ -34,7 +34,7 @@ However, later versions will persist preferences, chat history, etc.
 
 #### Roadmap
 
-##### Version 0.1
+##### Version 0.2
 * Join / Leave chat rooms
 * Handle all types of events (notices, etc)
 * History back-filling (scroll up to see earlier chat messages)
@@ -43,7 +43,7 @@ However, later versions will persist preferences, chat history, etc.
 * User presence update (timeout and mark them inactive, etc)
 * Some UI polish
 
-##### Version 0.2+
+##### Version 0.3+
 * Persistence of preferences, etc
 * CLI interface
 * More UI polish
