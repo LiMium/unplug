@@ -143,11 +143,11 @@ class AppState() {
     })
   }
 
-  synchronized private fun getOrCreate<T>(messageStore: HashMap<String, ObservableList<T>>, roomId: String, creator: () -> ObservableList<T>): ObservableList<T> {
-    val messages = messageStore.get(roomId)
+  synchronized private fun getOrCreate<T>(store: HashMap<String, ObservableList<T>>, roomId: String, creator: () -> ObservableList<T>): ObservableList<T> {
+    val messages = store.get(roomId)
     if (messages == null) {
-      val newList = SimpleListProperty<T>(creator())
-      messageStore.put(roomId, newList)
+      val newList = SimpleListProperty(creator())
+      store.put(roomId, newList)
       return newList
     } else {
       return messages
