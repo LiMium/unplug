@@ -7,15 +7,17 @@ import javafx.collections.ObservableList
 import org.fxmisc.easybind.EasyBind
 import java.util.HashMap
 import javafx.collections.FXCollections
-import javafx.beans.property.SimpleBooleanProperty
 
 import javafx.beans.property.SimpleBooleanProperty
+import java.util.LinkedList
 
 class UserState(val id: String) {
   val typing = SimpleBooleanProperty(false)
   val present = SimpleBooleanProperty(false)
   val displayName = SimpleStringProperty("");
 }
+
+class RoomState(val id:String, val aliases: MutableList<String>)
 
 // TODO: Avoid storing entire user state for every room. Instead have a common store and a lookup table
 class AppState() {
@@ -24,15 +26,21 @@ class AppState() {
   val currChatMessageList = SimpleObjectProperty<ObservableList<Message>>()
   val currUserList = SimpleObjectProperty<ObservableList<UserState>>()
 
-  val roomList = SimpleListProperty<Room>(FXCollections.observableArrayList())
-  val roomNameList = EasyBind.map(roomList, {(room: Room) -> room.aliases.firstOrNull() ?: room.id })
+  val roomStateList = SimpleListProperty<RoomState>(FXCollections.observableArrayList())
+  val roomNameList = EasyBind.map(roomStateList, {(room: RoomState) -> room.aliases.firstOrNull() ?: room.id })
 
   private final val roomChatMessageStore = HashMap<String, ObservableList<Message>>()
   private final val roomUserStore = HashMap<String, ObservableList<UserState>>()
 
-  fun processSyncResult(result: SyncResult) {
-    roomList.setAll(result.roomList)
+  synchronized fun processSyncResult(result: SyncResult) {
     result.roomList.stream().forEach { room ->
+      val existingRoomState = roomStateList.firstOrNull{it.id == room.id}
+      if (existingRoomState == null) {
+        roomStateList.add(RoomState(room.id, LinkedList(room.aliases)))
+      } else {
+        existingRoomState.aliases.addAll(room.aliases)
+      }
+
       getRoomChatMessages(room.id).setAll(room.chatMessages())
       val users = getRoomUsers(room.id)
       room.states.forEach {(state: State) ->

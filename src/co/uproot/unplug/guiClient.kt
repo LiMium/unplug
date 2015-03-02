@@ -127,7 +127,7 @@ class UnplugApp : Application() {
     EasyBind.subscribe(selectedRoomIndexProperty, {indexNum ->
       val index = indexNum as Int
       if (index >= 0) {
-        val room = appState.roomList.get(index)
+        val room = appState.roomStateList.get(index)
         appState.currRoomId.set(room.id)
       } else {
         appState.currRoomId.set(null)
