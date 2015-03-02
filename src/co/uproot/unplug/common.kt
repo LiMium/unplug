@@ -44,7 +44,7 @@ class AppState() {
               us.displayName.setValue(displayName)
               users.add(us)
             } else {
-              // users.removeFirstMatching { it.id == state.userId }
+              users.removeFirstMatching { it.id == state.userId }
             }
           }
           "m.room.aliases" -> {
