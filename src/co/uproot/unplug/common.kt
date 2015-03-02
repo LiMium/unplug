@@ -133,7 +133,7 @@ class AppState() {
 
   {
     EasyBind.subscribe(currRoomId, {(id: String?) ->
-      if (id != null) {
+      if (id != null && !id.isEmpty()) {
         currChatMessageList.set(getRoomChatMessages(id))
         currUserList.set(getRoomUsers(id))
       } else {
