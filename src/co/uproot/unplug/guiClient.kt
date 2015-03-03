@@ -243,8 +243,6 @@ class UserFormatCell() : ListCell<UserState>() {
       val typing = us.typing.get()
       val present = us.present.get()
       val typingStr = if(typing) "⌨" else ""
-      // val presentStr = if(present) "(present)" else ""
-      val renderText = """${us.displayName.get()} $typingStr"""
       val id = Text("${us.id} $typingStr") {
         getStyleClass().add("unplug-text")
         getStyleClass().add("user-id")
