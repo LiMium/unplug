@@ -115,6 +115,7 @@ class UnplugApp : Application() {
 
     val userListView = ListView(appState.currUserList.get())
     userListView.itemsProperty().bind(appState.currUserList)
+
     userListView.setCellFactory (object : Callback<javafx.scene.control.ListView<UserState>, ListCell<UserState>> {
       override fun call(list:javafx.scene.control.ListView<UserState>):ListCell<UserState> {
         return UserFormatCell()
@@ -233,28 +234,28 @@ class UserFormatCell() : ListCell<UserState>() {
 
   override fun updateItem(us: UserState?, empty: Boolean) {
     super.updateItem(us, empty)
-    val (renderText, renderClasses) = if (us == null) {
-      Pair("", null)
+    if (us == null || empty) {
+      setGraphic(null)
     } else {
       val typing = us.typing.get()
       val present = us.present.get()
       val typingStr = if(typing) "(typing)" else ""
       val presentStr = if(present) "(present)" else ""
-      val renderClass = if(typing || present) {
+      val renderClasses = if(typing || present) {
         array(if(typing) "user-typing" else "", if(present) "user-present" else "")
       } else {
         null
       }
-      Pair("""${us.displayName.get()} $typingStr $presentStr""", renderClass)
+      val renderText = """${us.displayName.get()} $typingStr $presentStr"""
+      setGraphic(Text(renderText) {
+        if (renderClasses != null) {
+          renderClasses.forEach { getStyleClass().add(it) }
+        } else {
+          getStyleClass().add("unplug-text")
+        }
+      })
     }
 
-    setGraphic(Text(renderText) {
-      if (renderClasses != null) {
-        renderClasses.forEach {getStyleClass().add(it)}
-      } else {
-        getStyleClass().add("unplug-text")
-      }
-    })
   }
 }
 
