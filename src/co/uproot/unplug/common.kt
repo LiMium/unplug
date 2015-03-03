@@ -12,20 +12,26 @@ import javafx.beans.property.SimpleBooleanProperty
 import java.util.LinkedList
 import com.eclipsesource.json.JsonObject
 import javafx.scene.image.Image
+import javafx.beans.property.SimpleLongProperty
 
 data class UserState(val id: String) {
   val typing = SimpleBooleanProperty(false)
   val present = SimpleBooleanProperty(false)
   val displayName = SimpleStringProperty("");
   val avatarURL = SimpleStringProperty("");
+  val lastActiveAgo = SimpleLongProperty(java.lang.Long.MAX_VALUE)
 
-  val weight = EasyBind.combine(typing, present, {(t, p) ->
-    var result = 0
+  private val SECONDS_PER_YEAR = (60L*60L*24L*365L)
+  private val SECONDS_PER_DECADE = (10L * SECONDS_PER_YEAR)
+
+  val weight = EasyBind.combine(typing, present, lastActiveAgo, {(t, p, la) ->
+    val laSec = Math.min(la.toLong() / 1000, SECONDS_PER_DECADE)
+    var result = (1 + (SECONDS_PER_DECADE - laSec )).toInt()
     if (t) {
-      result += 1
+      result *= 2
     }
     if (p) {
-      result += 1
+      result *= 2
     }
     result
   })
@@ -53,7 +59,7 @@ class AppState() {
   private final val roomUserStore = HashMap<String, ObservableList<UserState>>()
 
   synchronized fun processSyncResult(result: SyncResult, api:API) {
-    result.roomList.stream().forEach { room ->
+    result.rooms.stream().forEach { room ->
       val existingRoomState = roomStateList.firstOrNull { it.id == room.id }
       if (existingRoomState == null) {
         roomStateList.add(RoomState(room.id, LinkedList(room.aliases)))
@@ -105,6 +111,22 @@ class AppState() {
         }
       }
     }
+
+    result.presence.forEach { p ->
+      if (p.type == "m.presence") {
+        roomUserStore.values().forEach { users ->
+          val userId = p.content.getString("user_id", null)
+          users.firstOrNull { it.id == userId }?.let {
+            it.present.set(p.content.getString("presence", "") == "online")
+            it.lastActiveAgo.set(p.content.getLong("last_active_ago", java.lang.Long.MAX_VALUE))
+          }
+        }
+      }
+    }
+
+    roomUserStore.values().forEach { users ->
+      FXCollections.sort(users, {(a,b) -> b.weight.get() - a.weight.get()})
+    }
   }
 
   fun processEventsResult(eventResult: EventResult, api:API) {
@@ -119,7 +141,10 @@ class AppState() {
         "m.presence" -> {
           roomUserStore.values().forEach { users ->
             val userId = message.content.getString("user_id", null)
-            users.firstOrNull { it.id == userId }?.let { it.present.set(message.content.getString("presence", "") == "online") }
+            users.firstOrNull { it.id == userId }?.let {
+              it.present.set(message.content.getString("presence", "") == "online")
+              it.lastActiveAgo.set(message.content.getLong("last_active_ago", java.lang.Long.MAX_VALUE))
+            }
           }
         }
         "m.room.message" -> {

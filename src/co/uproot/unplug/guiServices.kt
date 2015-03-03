@@ -32,8 +32,6 @@ class LoginService() : Service<LoginResult>() {
   }
 }
 
-data class SyncResult(val roomList: List<Room>)
-
 class SyncService(val loginResult: LoginResult) : Service<SyncResult>() {
   val userName = SimpleStringProperty("")
   val password = SimpleStringProperty("")
@@ -43,14 +41,14 @@ class SyncService(val loginResult: LoginResult) : Service<SyncResult>() {
     return object : Task<SyncResult>() {
       override fun call(): SyncResult? {
         updateMessage("Syncing")
-        val roomList = api.initialSync(loginResult.accessToken)
-        if (roomList == null) {
+        val result = api.initialSync(loginResult.accessToken)
+        if (result == null) {
           updateMessage("Sync Failed")
           failed()
           return null
         } else {
           updateMessage("")
-          return SyncResult(roomList)
+          return result
         }
       }
     }

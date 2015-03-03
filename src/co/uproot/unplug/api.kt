@@ -49,6 +49,8 @@ fun JsonObject.getArray(name:String):JsonArray {
   return this.get(name).asArray()
 }
 
+class SyncResult(val rooms: List<Room>, val presence: List<Message>)
+
 class EventResult(val messages: List<Message>, val end: String)
 
 // TODO: Change API to be fully type-safe, and not return JSON objects
@@ -103,7 +105,7 @@ class API(val baseURL: String) {
     return eventId
   }
 
-  fun initialSync(accessToken: AccessToken):List<Room>? {
+  fun initialSync(accessToken: AccessToken):SyncResult? {
     val responseStr = net.doGet(apiURL + "initialSync?access_token=${accessToken.token}")
     if (responseStr == null) {
       return null
@@ -126,7 +128,8 @@ class API(val baseURL: String) {
       }
       Room(roomObj.getString("room_id", null), aliases, messageList.toLinkedList(), stateList)
     }
-    return roomList
+    val presence = parseChunks(jsonObj.getArray("presence").map{it.asObject()})
+    return SyncResult(roomList, presence)
   }
 
   fun getEvents(accessToken: AccessToken, from: String?):EventResult? {
