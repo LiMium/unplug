@@ -113,7 +113,9 @@ class UnplugApp : Application() {
     statusLabel.textProperty().bind(status)
     statusLabel.visible { status.get().length() > 0 }
 
-    val userListView = ListView(appState.currUserList.get())
+    val userListView = ListView(appState.currUserList.get()) {
+      getStyleClass().add("user-list")
+    }
     userListView.itemsProperty().bind(appState.currUserList)
 
     userListView.setCellFactory (object : Callback<javafx.scene.control.ListView<UserState>, ListCell<UserState>> {
@@ -239,21 +241,33 @@ class UserFormatCell() : ListCell<UserState>() {
     } else {
       val typing = us.typing.get()
       val present = us.present.get()
-      val typingStr = if(typing) "(typing)" else ""
-      val presentStr = if(present) "(present)" else ""
-      val renderClasses = if(typing || present) {
-        array(if(typing) "user-typing" else "", if(present) "user-present" else "")
-      } else {
-        null
+      val typingStr = if(typing) "⌨" else ""
+      // val presentStr = if(present) "(present)" else ""
+      val renderText = """${us.displayName.get()} $typingStr"""
+      val id = Text("${us.id} $typingStr") {
+        getStyleClass().add("unplug-text")
+        getStyleClass().add("user-id")
       }
-      val renderText = """${us.displayName.get()} $typingStr $presentStr"""
-      setGraphic(Text(renderText) {
-        if (renderClasses != null) {
-          renderClasses.forEach { getStyleClass().add(it) }
+      val displayName = Text("${us.displayName.get()}") {
+        getStyleClass().add("unplug-text")
+        getStyleClass().add("user-displayname")
+      }
+      val graphic =  VBox(spacing=5.0, padding=Insets(5.0)) {
+        +id
+        +displayName
+
+        if (typing || present) {
+          if (typing) {
+            getStyleClass().add("user-typing")
+          }
+          if (present) {
+            getStyleClass().add("user-present")
+          }
         } else {
-          getStyleClass().add("unplug-text")
+          getStyleClass().add("user-default")
         }
-      })
+      }
+      setGraphic(graphic)
     }
 
   }

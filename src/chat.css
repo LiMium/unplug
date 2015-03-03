@@ -37,10 +37,27 @@
   -fx-fill: #f33;
 }
 
+.list-view {
+  -fx-accent: rgb(20, 20, 20);
+  -fx-selection-bar-non-focused: rgb(24, 24, 24);
+}
+
+.user-default {
+  -fx-opacity: 0.5;
+}
+
 .user-typing {
-  -fx-fill: #999;
+  -fx-opacity: 1;
 }
 
 .user-present {
-  -fx-fill: #efe;
+  -fx-opacity: 0.9;
+}
+
+.user-id {
+  -fx-fill: #fff;
+}
+
+.user-displayname {
+  -fx-fill: #666;
 }
