@@ -14,6 +14,7 @@ import javafx.beans.value.ObservableNumberValue
 import javafx.collections.FXCollections
 import javafx.concurrent.Worker
 import co.uproot.unplug.*
+import javafx.geometry.Pos
 
 fun main(args: Array<String>) {
   Application.launch(javaClass<UnplugApp>(), *args)
@@ -194,7 +195,7 @@ class UnplugApp : Application() {
       if (syncResult == null) {
         showSyncError()
       } else {
-        appState.processSyncResult(syncResult)
+        appState.processSyncResult(syncResult, loginResult.api)
         postSync(loginResult)
       }
     }
@@ -219,7 +220,7 @@ class UnplugApp : Application() {
     eventsService.setOnSucceeded {
       val eventResult = eventsService.getValue()
       if (eventResult != null) {
-        appState.processEventsResult(eventResult)
+        appState.processEventsResult(eventResult, loginResult.api)
       }
       eventsService.restart()
     }
@@ -252,9 +253,23 @@ class UserFormatCell() : ListCell<UserState>() {
         getStyleClass().add("unplug-text")
         getStyleClass().add("user-displayname")
       }
-      val graphic =  VBox(spacing=5.0, padding=Insets(5.0)) {
+      val userDetails =  VBox(spacing=2.0, padding=Insets(0.0)) {
         +id
         +displayName
+      }
+
+      val image = us.avatarImage.get()
+      val avatar = ImageView(image) {
+        setFitWidth(32.0)
+        setFitHeight(32.0)
+        setCache(true)
+      }
+
+      val graphic =  HBox(spacing=10.0, padding=Insets(2.0)) {
+          +avatar
+          +userDetails
+
+        setAlignment(Pos.CENTER_LEFT)
 
         if (typing || present) {
           if (typing) {

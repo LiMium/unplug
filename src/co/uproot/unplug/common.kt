@@ -10,11 +10,14 @@ import javafx.collections.FXCollections
 
 import javafx.beans.property.SimpleBooleanProperty
 import java.util.LinkedList
+import com.eclipsesource.json.JsonObject
+import javafx.scene.image.Image
 
 data class UserState(val id: String) {
   val typing = SimpleBooleanProperty(false)
   val present = SimpleBooleanProperty(false)
   val displayName = SimpleStringProperty("");
+  val avatarURL = SimpleStringProperty("");
 
   val weight = EasyBind.combine(typing, present, {(t, p) ->
     var result = 0
@@ -28,6 +31,10 @@ data class UserState(val id: String) {
   })
 
   override fun toString() = "$id ${typing.get()} ${present.get()} ${weight.get()}"
+
+  val avatarImage = EasyBind.map(avatarURL) {url ->
+    if (url.isEmpty()) Image("/default-avatar.png") else Image(url, 32.0, 32.0, true, true, true)
+  }
 }
 
 class RoomState(val id:String, val aliases: MutableList<String>)
@@ -45,7 +52,7 @@ class AppState() {
   private final val roomChatMessageStore = HashMap<String, ObservableList<Message>>()
   private final val roomUserStore = HashMap<String, ObservableList<UserState>>()
 
-  synchronized fun processSyncResult(result: SyncResult) {
+  synchronized fun processSyncResult(result: SyncResult, api:API) {
     result.roomList.stream().forEach { room ->
       val existingRoomState = roomStateList.firstOrNull { it.id == room.id }
       if (existingRoomState == null) {
@@ -61,8 +68,9 @@ class AppState() {
           "m.room.member" -> {
             if (state.content.getString("membership", "") == "join") {
               val us = UserState(state.userId)
-              val displayName = state.content.get("displayname")?.let { if (it.isString()) it.asString() else null } ?: state.userId
+              val displayName = state.content.getStringOrElse("displayname", state.userId)
               us.displayName.setValue(displayName)
+              us.avatarURL.setValue(api.getAvatarThumbnailURL(state.content.getStringOrElse("avatar_url","")))
               users.add(us)
             } else {
               users.removeFirstMatching { it.id == state.userId }
@@ -99,7 +107,7 @@ class AppState() {
     }
   }
 
-  fun processEventsResult(eventResult: EventResult) {
+  fun processEventsResult(eventResult: EventResult, api:API) {
     eventResult.messages.forEach { message ->
       when (message.type) {
         "m.typing" -> {
@@ -127,6 +135,7 @@ class AppState() {
               val us = UserState(message.userId)
               val displayName = message.content.get("displayname")?.let { if (it.isString()) it.asString() else null } ?: message.userId
               us.displayName.setValue(displayName)
+              us.avatarURL.setValue(api.getAvatarThumbnailURL(message.content.getStringOrElse("avatar_url","")))
               users.add(us)
             } else {
               users.removeFirstMatching { it.id == message.userId }
@@ -152,7 +161,7 @@ class AppState() {
 
   synchronized private fun getRoomUsers(roomId: String): ObservableList<UserState> {
     return getOrCreate(roomUserStore, roomId, {
-      FXCollections.observableArrayList<UserState>({ userState -> array(userState.present, userState.displayName, userState.typing, userState.weight) })
+      FXCollections.observableArrayList<UserState>({ userState -> array(userState.present, userState.displayName, userState.avatarImage, userState.typing, userState.weight) })
     })
   }
 
@@ -191,4 +200,8 @@ fun <T> ObservableList<T>.removeFirstMatching(predicate: (T) -> Boolean) {
     }
   }
 
+}
+
+fun JsonObject.getStringOrElse(name:String, elseValue:String):String {
+ return get(name)?.let { if (it.isString()) it.asString() else null } ?: elseValue
 }

@@ -54,6 +54,7 @@ class EventResult(val messages: List<Message>, val end: String)
 // TODO: Change API to be fully type-safe, and not return JSON objects
 class API(val baseURL: String) {
   val apiURL = baseURL + "_matrix/client/api/v1/"
+  val mediaURL = baseURL + "_matrix/media/v1/"
 
   private final val client = OkHttpClient();
 
@@ -136,7 +137,7 @@ class API(val baseURL: String) {
     return EventResult(parseChunks(chunks.map{it.asObject()}), jsonObj.getString("end", null))
   }
 
-  fun parseChunks(chunk: List<JsonObject>): List<Message> {
+  private fun parseChunks(chunk: List<JsonObject>): List<Message> {
     val messageList = chunk.map { messageObj ->
       val userId = messageObj.getString("user_id", "")
       val type = messageObj.getString("type", "")
@@ -147,6 +148,17 @@ class API(val baseURL: String) {
     return messageList
   }
 
+  fun getAvatarThumbnailURL(mxcURL: String):String {
+    val mxcRegex = "^mxc://(.*)/([^#]*)(#auto)?$".toRegex()
+    val matcher = mxcRegex.matcher(mxcURL)
+    if (matcher.matches()) {
+      val serverName = matcher.group(1)
+      val mediaId = matcher.group(2)
+      return mediaURL + "thumbnail/$serverName/$mediaId?width=24&height=24"
+    } else {
+      return ""
+    }
+  }
 }
 
 private class Net(val client: OkHttpClient) {
