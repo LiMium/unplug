@@ -11,10 +11,23 @@ import javafx.collections.FXCollections
 import javafx.beans.property.SimpleBooleanProperty
 import java.util.LinkedList
 
-class UserState(val id: String) {
+data class UserState(val id: String) {
   val typing = SimpleBooleanProperty(false)
   val present = SimpleBooleanProperty(false)
   val displayName = SimpleStringProperty("");
+
+  val weight = EasyBind.combine(typing, present, {(t, p) ->
+    var result = 0
+    if (t) {
+      result += 1
+    }
+    if (p) {
+      result += 1
+    }
+    result
+  })
+
+  override fun toString() = "$id ${typing.get()} ${present.get()} ${weight.get()}"
 }
 
 class RoomState(val id:String, val aliases: MutableList<String>)
@@ -127,6 +140,10 @@ class AppState() {
 
       }
     }
+
+    roomUserStore.values().forEach { users ->
+      FXCollections.sort(users, {(a,b) -> b.weight.get() - a.weight.get()})
+    }
   }
 
   synchronized private fun getRoomChatMessages(roomId: String): ObservableList<Message> {
@@ -135,7 +152,7 @@ class AppState() {
 
   synchronized private fun getRoomUsers(roomId: String): ObservableList<UserState> {
     return getOrCreate(roomUserStore, roomId, {
-      FXCollections.observableArrayList<UserState>({ userState -> array(userState.present, userState.displayName, userState.typing) })
+      FXCollections.observableArrayList<UserState>({ userState -> array(userState.present, userState.displayName, userState.typing, userState.weight) })
     })
   }
 
@@ -149,6 +166,7 @@ class AppState() {
         currUserList.set(SimpleListProperty<UserState>())
       }
     })
+
   }
 
   synchronized private fun getOrCreate<T>(store: HashMap<String, ObservableList<T>>, roomId: String, creator: () -> ObservableList<T>): ObservableList<T> {
