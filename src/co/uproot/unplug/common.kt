@@ -34,7 +34,7 @@ class AppState() {
 
   synchronized fun processSyncResult(result: SyncResult) {
     result.roomList.stream().forEach { room ->
-      val existingRoomState = roomStateList.firstOrNull{it.id == room.id}
+      val existingRoomState = roomStateList.firstOrNull { it.id == room.id }
       if (existingRoomState == null) {
         roomStateList.add(RoomState(room.id, LinkedList(room.aliases)))
       } else {
@@ -88,7 +88,7 @@ class AppState() {
 
   fun processEventsResult(eventResult: EventResult) {
     eventResult.messages.forEach { message ->
-      when(message.type) {
+      when (message.type) {
         "m.typing" -> {
           val usersTyping = message.content.getArray("user_ids").map { it.asString() }
           roomUserStore.values().forEach { users ->
