@@ -154,11 +154,18 @@ class AppState() {
             val users = getRoomUsers(message.roomId)
             getRoomChatMessages(message.roomId).add(message)
             if (message.content.getString("membership", "") == "join") {
-              val us = UserState(message.userId)
+              val existingUser = users.firstOrNull { it.id == message.userId }
               val displayName = message.content.get("displayname")?.let { if (it.isString()) it.asString() else null } ?: message.userId
-              us.displayName.setValue(displayName)
-              us.avatarURL.setValue(api.getAvatarThumbnailURL(message.content.getStringOrElse("avatar_url","")))
-              users.add(us)
+              val avatarURL = api.getAvatarThumbnailURL(message.content.getStringOrElse("avatar_url", ""))
+              val user = if (existingUser == null) {
+                val us = UserState(message.userId)
+                users.add(us)
+                us
+              } else {
+                existingUser
+              }
+              user.displayName.set(displayName)
+              user.avatarURL.set(avatarURL)
             } else {
               users.removeFirstMatching { it.id == message.userId }
             }

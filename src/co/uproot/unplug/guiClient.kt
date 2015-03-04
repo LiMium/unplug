@@ -17,7 +17,7 @@ import co.uproot.unplug.*
 import javafx.geometry.Pos
 import java.util.concurrent.ConcurrentHashMap
 import javafx.scene.image.Image
-import java.util.function.Function
+import java.util.function.BiFunction
 
 fun main(args: Array<String>) {
   Application.launch(javaClass<UnplugApp>(), *args)
@@ -238,16 +238,28 @@ class UnplugApp : Application() {
 
 object ImageCache {
 
-  private val imageStore = ConcurrentHashMap<String, Image>()
+  final private class ImageEntry(val url:String, val img: Image)
 
-  private class ImageMaker(val url: String) : Function<String, Image> {
-    override fun apply(id: String): Image {
-      return Image(if (url.isEmpty()) "/default-avatar-32.png" else url, 32.0, 32.0, true, true, true)
+  private val imageStore = ConcurrentHashMap<String, ImageEntry>()
+
+  private class ImageMakerAndUpdater(val url: String) : BiFunction<String, ImageEntry, ImageEntry> {
+    override fun apply(id: String, oldImg: ImageEntry?): ImageEntry {
+      val saneURL = if (url.isEmpty()) "/default-avatar-32.png" else url
+      val imgEntry = if (oldImg == null) {
+        ImageEntry(saneURL,  Image(saneURL, 32.0, 32.0, true, true, true))
+      } else {
+        if (oldImg.url == saneURL) {
+          oldImg
+        } else {
+          ImageEntry(saneURL,  Image(saneURL, 32.0, 32.0, true, true, true))
+        }
+      }
+      return imgEntry
     }
   }
 
   fun getOrCreate(userId:String, url:String):Image {
-    return imageStore.computeIfAbsent(userId, ImageMaker(url))
+    return imageStore.compute(userId, ImageMakerAndUpdater(url)).img
   }
 }
 
