@@ -15,6 +15,9 @@ import javafx.collections.FXCollections
 import javafx.concurrent.Worker
 import co.uproot.unplug.*
 import javafx.geometry.Pos
+import java.util.concurrent.ConcurrentHashMap
+import javafx.scene.image.Image
+import java.util.function.Function
 
 fun main(args: Array<String>) {
   Application.launch(javaClass<UnplugApp>(), *args)
@@ -233,6 +236,21 @@ class UnplugApp : Application() {
   }
 }
 
+object ImageCache {
+
+  private val imageStore = ConcurrentHashMap<String, Image>()
+
+  private class ImageMaker(val url: String) : Function<String, Image> {
+    override fun apply(id: String): Image {
+      return Image(if (url.isEmpty()) "/default-avatar-32.png" else url, 32.0, 32.0, true, true, true)
+    }
+  }
+
+  fun getOrCreate(userId:String, url:String):Image {
+    return imageStore.computeIfAbsent(userId, ImageMaker(url))
+  }
+}
+
 class UserFormatCell() : ListCell<UserState>() {
 
   override fun updateItem(us: UserState?, empty: Boolean) {
@@ -256,7 +274,7 @@ class UserFormatCell() : ListCell<UserState>() {
         +displayName
       }
 
-      val image = us.avatarImage.get()
+      val image = ImageCache.getOrCreate(us.id, us.avatarURL.get())
       val avatar = ImageView(image) {
         setCache(true)
         setPreserveRatio(true)

@@ -38,10 +38,6 @@ data class UserState(val id: String) {
 
   override fun toString() = "$id ${typing.get()} ${present.get()} ${weight.get()}"
 
-  // TODO: Move this to GUI
-  val avatarImage = EasyBind.map(avatarURL) {url ->
-    Image(if (url.isEmpty()) "/default-avatar-32.png" else url, 32.0, 32.0, true, true, true)
-  }
 }
 
 class RoomState(val id:String, val aliases: MutableList<String>)
@@ -187,7 +183,7 @@ class AppState() {
 
   synchronized private fun getRoomUsers(roomId: String): ObservableList<UserState> {
     return getOrCreate(roomUserStore, roomId, {
-      FXCollections.observableArrayList<UserState>({ userState -> array(userState.present, userState.displayName, userState.avatarImage, userState.typing, userState.weight) })
+      FXCollections.observableArrayList<UserState>({ userState -> array(userState.present, userState.displayName, userState.avatarURL, userState.typing, userState.weight) })
     })
   }
 
