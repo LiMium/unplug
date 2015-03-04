@@ -151,8 +151,9 @@ class API(val baseURL: String) {
     return messageList
   }
 
+  private val mxcRegex = "^mxc://(.*)/([^#]*)(#auto)?$".toRegex()
+
   fun getAvatarThumbnailURL(mxcURL: String):String {
-    val mxcRegex = "^mxc://(.*)/([^#]*)(#auto)?$".toRegex()
     val matcher = mxcRegex.matcher(mxcURL)
     if (matcher.matches()) {
       val serverName = matcher.group(1)
