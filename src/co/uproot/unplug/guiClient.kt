@@ -258,13 +258,20 @@ class UserFormatCell() : ListCell<UserState>() {
 
       val image = us.avatarImage.get()
       val avatar = ImageView(image) {
-        setFitWidth(32.0)
-        setFitHeight(32.0)
         setCache(true)
+        setPreserveRatio(true)
+      }
+
+      // The wrap ensures that the avatar image doesn't collapse when its width is smaller than 32
+      val avatarWrap = StackPane() {
+        +avatar
+
+        setMinWidth(32.0)
+        setAlignment(Pos.CENTER)
       }
 
       val graphic =  HBox(spacing=10.0, padding=Insets(2.0)) {
-          +avatar
+          +avatarWrap
           +userDetails
 
         setAlignment(Pos.CENTER_LEFT)

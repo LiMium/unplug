@@ -38,8 +38,9 @@ data class UserState(val id: String) {
 
   override fun toString() = "$id ${typing.get()} ${present.get()} ${weight.get()}"
 
+  // TODO: Move this to GUI
   val avatarImage = EasyBind.map(avatarURL) {url ->
-    if (url.isEmpty()) Image("/default-avatar.png") else Image(url, 32.0, 32.0, true, true, true)
+    Image(if (url.isEmpty()) "/default-avatar-32.png" else url, 32.0, 32.0, true, true, true)
   }
 }
 
