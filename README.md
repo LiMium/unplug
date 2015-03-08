@@ -41,7 +41,7 @@ However, later versions will persist preferences, chat history, etc.
 * Handle all types of events (notices, etc)
 * History back-filling (scroll up to see earlier chat messages)
 * User avatars
-* Sorting of Users and Room names by activity
+* Sorting of Room names by activity
 * User presence update (timeout and mark them inactive, etc)
 * Some UI polish
 
