@@ -58,9 +58,9 @@ class API(val baseURL: String) {
   val apiURL = baseURL + "_matrix/client/api/v1/"
   val mediaURL = baseURL + "_matrix/media/v1/"
 
-  private final val client = OkHttpClient();
+  private final val client = OkHttpClient()
 
-  {
+  init {
     client.setFollowSslRedirects(false)
     client.setFollowRedirects(false)
   }

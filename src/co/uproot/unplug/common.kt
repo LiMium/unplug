@@ -24,7 +24,7 @@ data class UserState(val id: String) {
   private val SECONDS_PER_YEAR = (60L*60L*24L*365L)
   private val SECONDS_PER_DECADE = (10L * SECONDS_PER_YEAR)
 
-  val weight = EasyBind.combine(typing, present, lastActiveAgo, {(t, p, la) ->
+  val weight = EasyBind.combine(typing, present, lastActiveAgo, { t, p, la ->
     val laSec = Math.min(la.toLong() / 1000, SECONDS_PER_DECADE)
     var result = (1 + (SECONDS_PER_DECADE - laSec )).toInt()
     if (t) {
@@ -50,7 +50,7 @@ class AppState() {
   val currUserList = SimpleObjectProperty<ObservableList<UserState>>()
 
   val roomStateList = SimpleListProperty<RoomState>(FXCollections.observableArrayList())
-  val roomNameList = EasyBind.map(roomStateList, {(room: RoomState) -> room.aliases.firstOrNull() ?: room.id })
+  val roomNameList = EasyBind.map(roomStateList, { room: RoomState -> room.aliases.firstOrNull() ?: room.id })
 
   private final val roomChatMessageStore = HashMap<String, ObservableList<Message>>()
   private final val roomUserStore = HashMap<String, ObservableList<UserState>>()
@@ -66,7 +66,7 @@ class AppState() {
 
       getRoomChatMessages(room.id).setAll(room.chatMessages())
       val users = getRoomUsers(room.id)
-      room.states.forEach {(state: State) ->
+      room.states.forEach { state: State ->
         when (state.type) {
           "m.room.member" -> {
             if (state.content.getString("membership", "") == "join") {
@@ -122,7 +122,7 @@ class AppState() {
     }
 
     roomUserStore.values().forEach { users ->
-      FXCollections.sort(users, {(a,b) -> b.weight.get() - a.weight.get()})
+      FXCollections.sort(users, { a, b -> b.weight.get() - a.weight.get()})
     }
   }
 
@@ -180,7 +180,7 @@ class AppState() {
     }
 
     roomUserStore.values().forEach { users ->
-      FXCollections.sort(users, {(a,b) -> b.weight.get() - a.weight.get()})
+      FXCollections.sort(users, { a, b -> b.weight.get() - a.weight.get()})
     }
   }
 
@@ -194,8 +194,8 @@ class AppState() {
     })
   }
 
-  {
-    EasyBind.subscribe(currRoomId, {(id: String?) ->
+  init {
+    EasyBind.subscribe(currRoomId, { id: String? ->
       if (id != null && !id.isEmpty()) {
         currChatMessageList.set(getRoomChatMessages(id))
         currUserList.set(getRoomUsers(id))
