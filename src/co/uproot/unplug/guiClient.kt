@@ -157,9 +157,12 @@ class UnplugApp : Application() {
     val messageInputView = TextField()
     messageInputView.setOnAction {
       val msg = messageInputView.text
-      messageInputView.text = ""
-      val sendService = SendMessageService(loginResult, appState.currRoomId.get(), msg)
-      sendService.start()
+      if(msg!="")
+      {
+        messageInputView.text = ""
+        val sendService = SendMessageService(loginResult, appState.currRoomId.get(), msg)
+        sendService.start()
+      }
     }
 
     val messageView = VBox(spacing = 10.0) {
