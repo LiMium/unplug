@@ -14,10 +14,12 @@ import javafx.beans.value.ObservableNumberValue
 import javafx.collections.FXCollections
 import javafx.concurrent.Worker
 import co.uproot.unplug.*
+import javafx.beans.binding.DoubleBinding
 import javafx.geometry.Pos
 import java.util.concurrent.ConcurrentHashMap
 import javafx.scene.image.Image
 import java.util.function.BiFunction
+
 
 fun main(args: Array<String>) {
   Application.launch(javaClass<UnplugApp>(), *args)
@@ -150,7 +152,7 @@ class UnplugApp : Application() {
 
     messageListView.setCellFactory (object : Callback<javafx.scene.control.ListView<Message>, ListCell<Message>> {
       override fun call(list:javafx.scene.control.ListView<Message>):ListCell<Message> {
-        return MessageFormatCell(messageListView.widthProperty().add(-20))
+        return MessageFormatCell(messageListView.widthProperty().add(-20), appState)
       }
     })
 
@@ -327,37 +329,77 @@ class UserFormatCell() : ListCell<UserState>() {
   }
 }
 
-class MessageFormatCell(val containerWidthProperty: ObservableNumberValue) : ListCell<Message>() {
 
+class MessageFormatCell(val containerWidthProperty: DoubleBinding, val appState: AppState) : ListCell<Message>() {
   override fun updateItem(message: Message?, empty: Boolean) {
     super.updateItem(message, empty)
-    val (renderText, renderClass) = if (message == null) {
-      Pair("", null)
+    if (message == null || empty) {
+      setGraphic(null)
     } else {
-      when (message.type) {
-        "m.room.create" -> Pair("Room created by " + message.content.getString("creator", "(unexpected missing creator)"), "chat-message-meta")
-        "m.room.member" -> {
-          val status = if(message.content.getString("membership", "") == "join") "Joined" else "Left"
-          val displayName = message.content.getString("displayname", null)?:message.userId
-          Pair("$status: $displayName", "chat-message-meta")
+      val d = java.util.Date(message.ts)
+      val (userId, time, msgBody) =
+        when (message.type) {
+          "m.room.create" -> Triple(message.content.getString("creator", "(unexpected missing creator)"), d, "Room created")
+          "m.room.member" -> {
+            val status = if (message.content.getString("membership", "") == "join") "Joined" else "Left"
+            Triple(message.userId, d, status)
+          }
+          "m.room.message" -> Triple(message.userId, d, message.content.getString("body", "(unexpected empty body)"))
+          else -> {
+            Triple("Unknown message type: ${message.type}", "", "")
+          }
         }
-        "m.room.message" -> Pair(message.userId + ": " + message.content.getString("body", "(unexpected empty body)"), "chat-message-text")
 
-        else -> {
-          Pair("Unknown message type: ${message.type}", "chat-message-error")
+      if (message.roomId != null) {
+        val url = appState.getRoomUsers(message.roomId)
+        val a = url.firstOrNull { it.id == message.userId }
+        if (a == null) {
+        } else {
+          if (a.id == message.userId) {
+            val url = a.avatarURL
+            val image = ImageCache.getOrCreate(message.userId, url.get())
+            val avatar = ImageView(image) {
+              setCache(true)
+              setPreserveRatio(true)
+            }
+
+            // The wrap ensures that the avatar image doesn't collapse when its width is smaller than 32
+            val avatarWrap = StackPane() {
+              +avatar
+
+              setMinWidth(32.0)
+              setAlignment(Pos.CENTER)
+            }
+
+            val id = Text(userId)
+            val time = Text(time.toString())
+            val userDetails = VBox(spacing = 2.0, padding = Insets(0.0)) {
+              +id
+              +time
+            }
+
+            val body = Text(msgBody)
+            val bodyFlow = TextFlow(body)
+
+            val graphic = HBox(spacing = 10.0, padding = Insets(2.0)) {
+              +avatarWrap
+              +userDetails
+              +bodyFlow
+            }
+
+            graphic.prefWidthProperty().bind(containerWidthProperty)
+
+            id.getStyleClass().add("chat-message-text")
+            time.getStyleClass().add("chat-message-text")
+            body.getStyleClass().add("chat-message-text")
+
+            setGraphic(graphic)
+          }
+
         }
+      } else {
+        throw IllegalStateException("Room id of message is null: " + message)
       }
     }
-
-    setGraphic(Text(renderText) {
-      if (renderClass != null) {
-        getStyleClass().add(renderClass)
-      } else {
-        getStyleClass().add("unplug-text")
-      }
-      setWrapText(true)
-      wrappingWidthProperty().bind(containerWidthProperty)
-    })
   }
 }
-

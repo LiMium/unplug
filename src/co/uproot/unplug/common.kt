@@ -40,7 +40,7 @@ data class UserState(val id: String) {
 
 }
 
-class RoomState(val id:String, val aliases: MutableList<String>)
+data class RoomState(val id:String, val aliases: MutableList<String>)
 
 // TODO: Avoid storing entire user state for every room. Instead have a common store and a lookup table
 class AppState() {
@@ -188,7 +188,7 @@ class AppState() {
     return getOrCreate(roomChatMessageStore, roomId, { FXCollections.observableArrayList<Message>() })
   }
 
-  synchronized private fun getRoomUsers(roomId: String): ObservableList<UserState> {
+  synchronized public fun getRoomUsers(roomId: String): ObservableList<UserState> {
     return getOrCreate(roomUserStore, roomId, {
       FXCollections.observableArrayList<UserState>({ userState -> array(userState.present, userState.displayName, userState.avatarURL, userState.typing, userState.weight) })
     })
