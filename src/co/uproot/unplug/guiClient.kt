@@ -192,6 +192,7 @@ class UnplugApp : Application() {
       }
     })
 
+    stage.setMaximized(true)
     stage.centerOnScreen()
 
     val syncService = SyncService(loginResult)
