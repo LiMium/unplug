@@ -97,11 +97,12 @@ class UnplugApp : Application() {
     loginService.setOnSucceeded {
       val loginResult = loginService.getValue();
       if (loginResult == null) {
+        alert("Invalid user-id/password")
         // logginIn u false
         loginService.reset()
       } else {
         stage.title = "[unplug] " + loginService.userName.get() + " : " + serverText
-        postLogin(stage, loginResult)
+        postLogin(stage, loginResult,serverText)
       }
     }
     loginService.setOnFailed {
@@ -114,7 +115,7 @@ class UnplugApp : Application() {
 
   val appState = AppState()
 
-  fun postLogin(stage: Stage, loginResult: LoginResult) {
+  fun postLogin(stage: Stage, loginResult: LoginResult,serverText:String) {
     val statusLabel = Label()
     statusLabel.textProperty().bind(status)
     statusLabel.visible { status.get().length() > 0 }
@@ -141,7 +142,6 @@ class UnplugApp : Application() {
       } else {
         appState.currRoomId.set(null)
       }
-
     })
 
     val messageListView = ListView(appState.currChatMessageList.get()) {
@@ -166,8 +166,31 @@ class UnplugApp : Application() {
         sendService.start()
       }
     }
+    val createRoomButton=createRoom(loginResult)
+    val joinRoomButton=joinRoom(loginResult)
+
+    val roomOptionView=VBox(spacing=10.0) {
+      +createRoomButton
+      +joinRoomButton
+    }
+
+    val roomList=VBox(spacing = 10.0){
+      +roomListView
+      +roomOptionView
+    }
+
+    val inviteMemberButton=inviteMember(loginResult)
+    val banMemberButton=banMember(loginResult)
+    val leaveRoomButton=leaveRoom(loginResult)
+
+    val optionView = HBox(spacing=10.0){
+      +inviteMemberButton
+      +banMemberButton
+      +leaveRoomButton
+    }
 
     val messageView = VBox(spacing = 10.0) {
+      +optionView
       +messageListView
       +messageInputView
     }
@@ -178,7 +201,7 @@ class UnplugApp : Application() {
 
 
     val chatView = HBox(spacing=10.0, padding=Insets(10.0)) {
-      + roomListView
+      + roomList
       + messageView
       + userListView
     }
@@ -202,7 +225,7 @@ class UnplugApp : Application() {
     syncService.setOnSucceeded {
       val syncResult = syncService.getValue()
       if (syncResult == null) {
-        showSyncError()
+        status.setValue("Sync error")
       } else {
         appState.processSyncResult(syncResult, loginResult.api)
         postSync(loginResult)
@@ -213,8 +236,222 @@ class UnplugApp : Application() {
     syncService.start()
   }
 
+  fun createRoom(loginResult:LoginResult):javafx.scene.control.Button {
+    val createRoomButton = Button("Create Room")
+    createRoomButton.setOnAction {
+      val stage1=Stage()
+      Stage(stage1, title = "Creating Room"){
+        scene=Scene {
+          stylesheets.add("/chat.css")
+          val name = Label("Enter name :")
+          val textfld= TextField()
+          val visibility=RadioButton("public")
+          val create = Button("Create")
+          create.setOnAction {
+            val createRoom1 = CreateRoomService(loginResult, textfld.text(), visibility.getText())
+            createRoom1.start()
+            stage1.close()
+          }
+          create.disable {
+            textfld.text().length()==0
+          }
+          val hb = HBox(spacing = 10.0) {
+            +name
+            +textfld
+          }
+          root = VBox(spacing = 15.0,padding =Insets(60.0,60.0,150.0,60.0)) {
+            +visibility
+            +hb
+            +create
+          }
+        }
+      }.show()
+    }
+    return createRoomButton
+  }
+
+  fun joinRoom(loginResult:LoginResult):javafx.scene.control.Button {
+    val joinRoomButton=Button("Join Room")
+    joinRoomButton.setOnAction {
+      val stage2=Stage()
+      Stage(stage2, title = "Joining Room"){
+        scene=Scene{
+          stylesheets.add("/chat.css")
+          val lblName=Label("Enter room name ")
+          val name=TextField()
+          val join=Button("Join")
+          join.setOnAction {
+            if(name.text.charAt(0).compareTo('#':Char)==0){
+              try {
+                val joinRoom = JoinRoomService(loginResult, name.text())
+                joinRoom.start()
+              } catch(e: Exception) {
+                e.printStackTrace()
+                alert("Room is private")
+              }
+              stage2.close()
+            } else {
+              alert("Invalid room name")
+            }
+          }
+          join.disable {
+            name.text().length()==0
+          }
+          val hbox=HBox(spacing=10.0){
+            +lblName
+            +name
+          }
+          root=VBox(spacing=10.0,padding = Insets(80.0,60.0,60.0,60.0)){
+            +hbox
+            +join
+          }
+        }
+      }.show()
+    }
+    return joinRoomButton
+  }
+
+  fun inviteMember(loginResult:LoginResult):javafx.scene.control.Button {
+    val inviteMemberButton=Button("Invite Member")
+    inviteMemberButton.setOnAction {
+      val stage4=Stage()
+      Stage(stage4,title = "Inviting member"){
+        scene =Scene{
+          stylesheets.add("/chat.css")
+          val lblroomName=Label("Enter room name")
+          val roomName=TextField(appState.getCurrRoomName()?:"")
+          val lblmemId=Label("Enter member Id :")
+          val memberId=TextField()
+          val invite=Button("Invite")
+          invite.setOnAction {
+            val inviteService=InviteMemberService(loginResult,roomName.text(),memberId.text())
+            inviteService.start()
+            stage4.close()
+          }
+          invite.disable {
+            roomName.text().length()==0 || memberId.text().length()==0
+          }
+          val hbox1=HBox(spacing = 20.0){
+            +lblroomName
+            +roomName
+          }
+          val hbox2=HBox(spacing = 15.0){
+            +lblmemId
+            +memberId
+          }
+          root=VBox(spacing = 15.0,padding = Insets(80.0,60.0,60.0,60.0)){
+            +hbox1
+            +hbox2
+            +invite
+          }
+
+        }
+      }.show()
+    }
+    return inviteMemberButton
+  }
+
+  fun banMember(loginResult:LoginResult):javafx.scene.control.Button {
+    val banMemberButton=Button("Ban Member")
+    banMemberButton.setOnAction {
+      val stage3=Stage()
+      Stage(stage3, title = "Banning Member"){
+        scene=Scene{
+          stylesheets.add("/chat.css")
+          val lblroomName=Label("Enter room name")
+          val roomName=TextField(appState.getCurrRoomName()?:"")
+          val lblMId=Label("Enter member Id")
+          val memId=TextField()
+          val ban=Button("Ban")
+          ban.setOnAction {
+            if(roomName.text.charAt(0).compareTo('#':Char)!=0){
+              alert("Invalid room name")
+            } else if(memId.text.charAt(0).compareTo('@':Char)!=0){
+              alert("Invalid member id")
+            } else {
+              val banService = BanRoomService(loginResult, roomName.text(), memId.text(), appState)
+              banService.start()
+              stage3.close()
+            }
+          }
+          ban.disable {
+            roomName.text().length()==0 || memId.text().length()==0
+          }
+          val hbox1=HBox(spacing = 20.0){
+            +lblroomName
+            +roomName
+          }
+          val hbox2=HBox(spacing = 23.0){
+            +lblMId
+            +memId
+          }
+          root=VBox(spacing = 15.0,padding = Insets(80.0,60.0,60.0,60.0)){
+            +hbox1
+            +hbox2
+            +ban
+          }
+        }
+      }.show()
+    }
+    return banMemberButton
+  }
+
+  fun leaveRoom(loginResult:LoginResult):javafx.scene.control.Button{
+    val leaveRoomButton=Button("Leave Room")
+    leaveRoomButton.setOnAction {
+      val stage4=Stage()
+      Stage(stage4, title = "Leaving Room"){
+        scene=Scene{
+          stylesheets.add("/chat.css")
+          val lblname=Label("Enter room name")
+          val name=TextField(appState.getCurrRoomName()?:"")
+          val leave=Button("Leave")
+          leave.setOnAction {
+            if(name.text.charAt(0).compareTo('#':Char)==0){
+              val leaveRoomSer = LeaveRoomService(loginResult, name.text())
+              leaveRoomSer.start()
+              stage4.close()
+            } else {
+              alert("Invalid room name")
+            }
+          }
+          leave.disable {
+            name.text().length()==0
+          }
+          val hbox=HBox(spacing = 10.0){
+            +lblname
+            +name
+          }
+          root=VBox(spacing = 10.0, padding = Insets(80.0,60.0,60.0,60.0)){
+            +hbox
+            +leave
+          }
+        }
+      }.show()
+    }
+    return leaveRoomButton
+  }
+
+  fun alert(msg:String){
+    val stage01=Stage()
+    Stage(stage01, title="Alert!!"){
+      scene=Scene{
+        stylesheets.add("/chat.css")
+        val msg=Label(msg)
+        val btn=Button("Close")
+        root=VBox(spacing = 15.0,padding =Insets(60.0,60.0,150.0,60.0)) {
+          +msg
+          +btn
+        }
+        btn.setOnAction {
+          stage01.close()
+        }
+      }
+    }.show()
+  }
+
   private fun showSyncError() {
-    Stage(null, "Error") {
+    Stage(Stage(), "Error") {
       scene = Scene() {
         root = VBox() {
           +Label ("Error while syncing")
@@ -229,7 +466,7 @@ class UnplugApp : Application() {
     eventsService.setOnSucceeded {
       val eventResult = eventsService.getValue()
       if (eventResult != null) {
-        appState.processEventsResult(eventResult, loginResult.api)
+        appState.processEventsResult(eventResult, loginResult.api,loginResult)
       }
       eventsService.restart()
     }
@@ -351,12 +588,13 @@ class MessageFormatCell(val containerWidthProperty: DoubleBinding, val appState:
         }
 
       if (message.roomId != null) {
-        val url = appState.getRoomUsers(message.roomId)
-        val a = url.firstOrNull { it.id == message.userId }
-        if (a == null) {
+        val users = appState.getRoomUsers(message.roomId)
+        val messageUser = users.firstOrNull { it.id == message.userId }
+        if (messageUser == null) {
+          setGraphic(Text("User left the room"))
         } else {
-          if (a.id == message.userId) {
-            val url = a.avatarURL
+          if (messageUser.id == message.userId) {
+            val url = messageUser.avatarURL
             val image = ImageCache.getOrCreate(message.userId, url.get())
             val avatar = ImageView(image) {
               setCache(true)
@@ -386,13 +624,11 @@ class MessageFormatCell(val containerWidthProperty: DoubleBinding, val appState:
               +userDetails
               +bodyFlow
             }
-
             graphic.prefWidthProperty().bind(containerWidthProperty)
 
             id.getStyleClass().add("chat-message-text")
             time.getStyleClass().add("chat-message-text")
             body.getStyleClass().add("chat-message-text")
-
             setGraphic(graphic)
           }
 
