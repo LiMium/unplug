@@ -81,10 +81,15 @@ class AppState() {
               users.removeFirstMatching { it.id == state.userId }
             } else {
               println("Not handled membership message: $membership")
+              println("  room: ${room.getAliasOrId()}, from: ${state.userId},  key: ${state.stateKey}")
             }
           }
           "m.room.aliases" -> {
-            // TODO
+            // TODO: This doesn't need to handled here, because aliases are being already parsed by the API class
+            /*
+            val aliases = state.content.getArray("aliases").map{it.asString()}
+            existingRoomState?.let {it.aliases.addAll(aliases)}
+            */
           }
           "m.room.power_levels" -> {
             // TODO

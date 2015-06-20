@@ -41,6 +41,14 @@ data class Room(val id: String, val aliases: List<String>, val messages: Mutable
   fun chatMessages(): List<Message> {
     return messages.stream().filter({ isChatMessage(it) }).toList()
   }
+
+  fun getAliasOrId(): String {
+    if (aliases.size() > 0) {
+      return aliases.get(0)
+    } else {
+      return id
+    }
+  }
 }
 
 fun JsonObject.getObject(name: String): JsonObject {
