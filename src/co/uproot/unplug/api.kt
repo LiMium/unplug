@@ -59,6 +59,11 @@ class LeaveRoomResult(val result:String?)
 class BanRoomResult(val result:String?)
 data class LoginResult(val userId:String,val accessToken: AccessToken, val api: API)
 
+interface RoomIdentifier
+
+class RoomId(val id: String) : RoomIdentifier
+class RoomName(val name: String) : RoomIdentifier
+
 // TODO: Change API to be fully type-safe, and not return JSON objects
 class API(val baseURL: String) {
   val apiURL = baseURL + "_matrix/client/api/v1/"
@@ -105,17 +110,18 @@ class API(val baseURL: String) {
    return  CreateRoomResult(roomAlias,roomId)
   }
 
- fun joiningRoon(accessToken:AccessToken,roomName:String):JoinRoomResult{
-   val nameEncode=URLEncoder.encode(roomName, "UTF-8")
+ fun joiningRoon(accessToken:AccessToken,room:RoomIdentifier):JoinRoomResult{
+   val roomId = getRoomId(accessToken, room)
+   val nameEncode=URLEncoder.encode(roomId, "UTF-8")
    val responseStr= net.doPost(apiURL + "join/$nameEncode?access_token=${accessToken.token}","")
    val jsonObj = JsonObject.readFrom(responseStr)
-   val roomId=jsonObj.getString("room_id",null)
+   val roomIdResult=jsonObj.getString("room_id",null)
    val servers=jsonObj.getString("servers",null)
-   return JoinRoomResult(roomId,servers)
+   return JoinRoomResult(roomIdResult,servers)
  }
 
- fun invitingMember(accessToken:AccessToken,roomName:String,memId:String):InviteMemResult{
-   val roomId=getRoomId(accessToken,roomName)
+ fun invitingMember(accessToken:AccessToken,room:RoomIdentifier,memId:String):InviteMemResult{
+   val roomId=getRoomId(accessToken,room)
    val roomIdEncode=URLEncoder.encode(roomId,"UTF-8")
    val rmIdEncode=roomIdEncode.substring(3)
    val post="""
@@ -124,8 +130,8 @@ class API(val baseURL: String) {
    return InviteMemResult(responseStr)
  }
 
-  fun banningMember(accessToken:AccessToken,roomName:String,memId:String, appState: AppState):BanRoomResult{
-    val roomId=getRoomId(accessToken,roomName)
+  fun banningMember(accessToken:AccessToken,room:RoomIdentifier,memId:String, appState: AppState):BanRoomResult{
+    val roomId=getRoomId(accessToken,room)
     val ban="ban"
     val roomIdEncode=URLEncoder.encode(roomId, "UTF-8")
     val rmIdEncode=roomIdEncode.substring(3)
@@ -149,12 +155,21 @@ class API(val baseURL: String) {
     return BanRoomResult(null)
   }
 
-  fun leavingRoom(accessToken:AccessToken,roomName:String):LeaveRoomResult{
-    val roomId=getRoomId(accessToken,roomName)
+  fun leavingRoom(accessToken:AccessToken, room: RoomIdentifier):LeaveRoomResult{
+    val roomId = getRoomId(accessToken, room)
     val roomIdEncode=URLEncoder.encode(roomId, "UTF-8")
     val rmIdEncode=roomIdEncode.substring(3)
     val responseStr=net.doPost(apiURL + "rooms/!$rmIdEncode/leave?access_token=${accessToken.token}","{}")
+    // TODO: Parse response
     return LeaveRoomResult(null)
+  }
+
+  private fun getRoomId(accessToken: AccessToken, room: RoomIdentifier): String? {
+    return when (room) {
+      is RoomId -> room.id
+      is RoomName -> getRoomId(accessToken, room.name)
+      else -> throw UnknownError("Unknown room identifier") // TODO: Use sealed class
+    }
   }
 
   fun getRoomId(accessToken: AccessToken, roomAlias: String): String? {

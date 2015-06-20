@@ -270,6 +270,17 @@ class UnplugApp : Application() {
     return createRoomButton
   }
 
+  private fun getRoomIdentifier(room: String):RoomIdentifier? {
+    val first = room.charAt(0)
+    if(first == '#'){
+      return RoomName(room)
+    } else if (first == '!'){
+      return RoomId(room)
+    } else {
+      return null
+    }
+  }
+
   fun joinRoom(loginResult:LoginResult):javafx.scene.control.Button {
     val joinRoomButton=Button("Join Room")
     joinRoomButton.setOnAction {
@@ -281,9 +292,10 @@ class UnplugApp : Application() {
           val name=TextField()
           val join=Button("Join")
           join.setOnAction {
-            if(name.text.charAt(0).compareTo('#':Char)==0){
+            val room = getRoomIdentifier(name.text)
+            if(room != null) {
               try {
-                val joinRoom = JoinRoomService(loginResult, name.text())
+                val joinRoom = JoinRoomService(loginResult, room)
                 joinRoom.start()
               } catch(e: Exception) {
                 e.printStackTrace()
@@ -291,7 +303,7 @@ class UnplugApp : Application() {
               }
               stage2.close()
             } else {
-              alert("Invalid room name")
+              alert("Invalid Room Name or id")
             }
           }
           join.disable {
@@ -319,14 +331,19 @@ class UnplugApp : Application() {
         scene =Scene{
           stylesheets.add("/chat.css")
           val lblroomName=Label("Enter room name")
-          val roomName=TextField(appState.getCurrRoomName()?:"")
+          val roomName=TextField(appState.getCurrRoomNameOrId()?:"")
           val lblmemId=Label("Enter member Id :")
           val memberId=TextField()
           val invite=Button("Invite")
           invite.setOnAction {
-            val inviteService=InviteMemberService(loginResult,roomName.text(),memberId.text())
-            inviteService.start()
-            stage4.close()
+            val room = getRoomIdentifier(roomName.text)
+            if (room != null) {
+              val inviteService = InviteMemberService(loginResult, room, memberId.text())
+              inviteService.start()
+              stage4.close()
+            } else {
+              alert("Invalid Room Name or Id")
+            }
           }
           invite.disable {
             roomName.text().length()==0 || memberId.text().length()==0
@@ -359,19 +376,18 @@ class UnplugApp : Application() {
         scene=Scene{
           stylesheets.add("/chat.css")
           val lblroomName=Label("Enter room name")
-          val roomName=TextField(appState.getCurrRoomName()?:"")
+          val roomName=TextField(appState.getCurrRoomNameOrId()?:"")
           val lblMId=Label("Enter member Id")
           val memId=TextField()
           val ban=Button("Ban")
           ban.setOnAction {
-            if(roomName.text.charAt(0).compareTo('#':Char)!=0){
-              alert("Invalid room name")
-            } else if(memId.text.charAt(0).compareTo('@':Char)!=0){
-              alert("Invalid member id")
-            } else {
-              val banService = BanRoomService(loginResult, roomName.text(), memId.text(), appState)
+            val room = getRoomIdentifier(roomName.text)
+            if (room != null) {
+              val banService = BanRoomService(loginResult, room, memId.text(), appState)
               banService.start()
               stage3.close()
+            } else {
+              alert("Invalid Room Name or Id")
             }
           }
           ban.disable {
@@ -404,15 +420,16 @@ class UnplugApp : Application() {
         scene=Scene{
           stylesheets.add("/chat.css")
           val lblname=Label("Enter room name")
-          val name=TextField(appState.getCurrRoomName()?:"")
+          val name=TextField(appState.getCurrRoomNameOrId()?:"")
           val leave=Button("Leave")
           leave.setOnAction {
-            if(name.text.charAt(0).compareTo('#':Char)==0){
-              val leaveRoomSer = LeaveRoomService(loginResult, name.text())
+            val room = getRoomIdentifier(name.text)
+            if(room != null) {
+              val leaveRoomSer = LeaveRoomService(loginResult, room)
               leaveRoomSer.start()
               stage4.close()
             } else {
-              alert("Invalid room name")
+              alert("Invalid Room Name or Id")
             }
           }
           leave.disable {

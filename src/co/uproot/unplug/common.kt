@@ -233,9 +233,11 @@ class AppState() {
     })
   }
 
-  synchronized public fun getCurrRoomName():String? {
-     val m= roomStateList.firstOrNull{it.id==currRoomId.get()}?.aliases?.firstOrNull()
-     return m
+  synchronized public fun getCurrRoomNameOrId():String? {
+    val currRoom = roomStateList.firstOrNull{it.id==currRoomId.get()}
+    val alias = currRoom?.aliases?.firstOrNull()
+    val name = alias ?: currRoom?.id
+    return name
   }
 
   init {

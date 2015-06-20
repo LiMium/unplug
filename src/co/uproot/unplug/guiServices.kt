@@ -96,12 +96,12 @@ class CreateRoomService(val loginResult : LoginResult, val roomname:String,val v
   }
 }
 
-class JoinRoomService(val loginResult : LoginResult,val roomName:String) : Service<JoinRoomResult>() {
+class JoinRoomService(val loginResult : LoginResult,val room: RoomIdentifier) : Service<JoinRoomResult>() {
 
   override fun createTask(): Task<JoinRoomResult>? {
     return object : Task<JoinRoomResult>() {
       override fun call(): JoinRoomResult? {
-        val joinResult = loginResult.api.joiningRoon(loginResult.accessToken,roomName)
+        val joinResult = loginResult.api.joiningRoon(loginResult.accessToken, room)
         if (joinResult == null) {
           updateMessage("Failed")
           failed()
@@ -115,12 +115,12 @@ class JoinRoomService(val loginResult : LoginResult,val roomName:String) : Servi
   }
 }
 
-class InviteMemberService(val loginResult : LoginResult,val roomName:String,val memName:String) : Service<InviteMemResult>() {
+class InviteMemberService(val loginResult : LoginResult,val room: RoomIdentifier,val memName:String) : Service<InviteMemResult>() {
 
  override fun createTask(): Task<InviteMemResult>? {
    return object : Task<InviteMemResult>() {
      override fun call(): InviteMemResult? {
-       val inviteResult = loginResult.api.invitingMember(loginResult.accessToken,roomName,memName)
+       val inviteResult = loginResult.api.invitingMember(loginResult.accessToken,room,memName)
        if (inviteResult == null) {
          updateMessage("Failed")
          failed()
@@ -134,12 +134,12 @@ class InviteMemberService(val loginResult : LoginResult,val roomName:String,val 
  }
 }
 
-class BanRoomService(val loginResult : LoginResult, val roomname:String,val memId:String, val appState: AppState) : Service<BanRoomResult>() {
+class BanRoomService(val loginResult : LoginResult, val room:RoomIdentifier,val memId:String, val appState: AppState) : Service<BanRoomResult>() {
 
   override fun createTask(): Task<BanRoomResult>? {
     return object : Task<BanRoomResult>() {
       override fun call(): BanRoomResult? {
-        val banRoomResult = loginResult.api.banningMember(loginResult.accessToken,roomname,memId,appState)
+        val banRoomResult = loginResult.api.banningMember(loginResult.accessToken,room,memId,appState)
         if (banRoomResult == null) {
           updateMessage("Failed")
           failed()
@@ -153,12 +153,12 @@ class BanRoomService(val loginResult : LoginResult, val roomname:String,val memI
   }
 }
 
-class LeaveRoomService(val loginResult : LoginResult,val roomName:String) : Service<LeaveRoomResult>() {
+class LeaveRoomService(val loginResult : LoginResult,val roomIdentifier:RoomIdentifier) : Service<LeaveRoomResult>() {
 
   override fun createTask(): Task<LeaveRoomResult>? {
     return object : Task<LeaveRoomResult>() {
       override fun call(): LeaveRoomResult? {
-        val leaveResult = loginResult.api.leavingRoom(loginResult.accessToken,roomName)
+        val leaveResult = loginResult.api.leavingRoom(loginResult.accessToken,roomIdentifier)
         if (leaveResult == null) {
           updateMessage("Failed")
           failed()
