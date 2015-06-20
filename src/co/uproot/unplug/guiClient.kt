@@ -607,7 +607,9 @@ class MessageFormatCell(val containerWidthProperty: DoubleBinding, val appState:
         val users = appState.getRoomUsers(message.roomId)
         val messageUser = users.firstOrNull { it.id == message.userId }
         if (messageUser == null) {
-          setGraphic(Text("User left the room"))
+          setGraphic(Text("User ${message.userId} not found in the room!") {
+            getStyleClass().add("chat-message-meta")
+          })
         } else {
           if (messageUser.id == message.userId) {
             val url = messageUser.avatarURL
