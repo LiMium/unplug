@@ -21,7 +21,7 @@ data class UserState(val id: String) {
   val avatarURL = SimpleStringProperty("");
   val lastActiveAgo = SimpleLongProperty(java.lang.Long.MAX_VALUE)
 
-  private val SECONDS_PER_YEAR = (60L*60L*24L*365L)
+  private val SECONDS_PER_YEAR = (60L * 60L * 24L * 365L)
   private val SECONDS_PER_DECADE = (10L * SECONDS_PER_YEAR)
 
   val weight = EasyBind.combine(typing, present, lastActiveAgo, { t, p, la ->
@@ -40,7 +40,7 @@ data class UserState(val id: String) {
 
 }
 
-data class RoomState(val id:String, val aliases: ObservableList<String>)
+data class RoomState(val id: String, val aliases: ObservableList<String>)
 
 // TODO: Avoid storing entire user state for every room. Instead have a common store and a lookup table
 class AppState() {
@@ -49,13 +49,13 @@ class AppState() {
   val currChatMessageList = SimpleObjectProperty<ObservableList<Message>>()
   val currUserList = SimpleObjectProperty<ObservableList<UserState>>()
 
-  val roomStateList = SimpleListProperty(FXCollections.observableArrayList<RoomState>({roomState -> array(roomState.aliases)}))
+  val roomStateList = SimpleListProperty(FXCollections.observableArrayList<RoomState>({ roomState -> array(roomState.aliases) }))
   val roomNameList = EasyBind.map(roomStateList, { room: RoomState -> room.aliases.firstOrNull() ?: room.id })
 
   private final val roomChatMessageStore = HashMap<String, ObservableList<Message>>()
   private final val roomUserStore = HashMap<String, ObservableList<UserState>>()
 
-  synchronized fun processSyncResult(result: SyncResult, api:API) {
+  synchronized fun processSyncResult(result: SyncResult, api: API) {
     result.rooms.stream().forEach { room ->
       val existingRoomState = roomStateList.firstOrNull { it.id == room.id }
       if (existingRoomState == null) {
@@ -75,9 +75,9 @@ class AppState() {
               val us = UserState(state.userId)
               val displayName = state.content.getStringOrElse("displayname", state.userId)
               us.displayName.setValue(displayName)
-              us.avatarURL.setValue(api.getAvatarThumbnailURL(state.content.getStringOrElse("avatar_url","")))
+              us.avatarURL.setValue(api.getAvatarThumbnailURL(state.content.getStringOrElse("avatar_url", "")))
               users.add(us)
-            } else if (membership == "leave"){
+            } else if (membership == "leave") {
               users.removeFirstMatching { it.id == state.userId }
             } else {
               println("Not handled membership message: $membership")
@@ -126,11 +126,11 @@ class AppState() {
     }
 
     roomUserStore.values().forEach { users ->
-      FXCollections.sort(users, { a, b -> b.weight.get() - a.weight.get()})
+      FXCollections.sort(users, { a, b -> b.weight.get() - a.weight.get() })
     }
   }
 
-  fun processEventsResult(eventResult: EventResult, api:API,loginResult:LoginResult) {
+  fun processEventsResult(eventResult: EventResult, api: API, loginResult: LoginResult) {
     eventResult.messages.forEach { message ->
       when (message.type) {
         "m.typing" -> {
@@ -155,17 +155,17 @@ class AppState() {
         }
         "m.room.member" -> {
           if (message.roomId != null) {
-            val messageFromLoggedInUser = loginResult.userId==message.userId
+            val messageFromLoggedInUser = loginResult.userId == message.userId
 
             val users = getRoomUsers(message.roomId)
 
             val membership = message.content.getString("membership", "")
 
             if (membership == "join") {
-              if(messageFromLoggedInUser) {
-                val roomService=RoomSyncService(loginResult,message.roomId)
+              if (messageFromLoggedInUser) {
+                val roomService = RoomSyncService(loginResult, message.roomId)
                 roomService.setOnSucceeded {
-                  val value=roomService.getValue()
+                  val value = roomService.getValue()
                   if (value != null) {
                     processSyncResult(value, loginResult.api)
                   }
@@ -186,27 +186,27 @@ class AppState() {
                 user.avatarURL.set(avatarURL)
               }
             } else if (membership == "leave") {
-               users.removeFirstMatching { it.id == message.userId }
-               if(messageFromLoggedInUser) {
-                 roomStateList.removeFirstMatching { it.id == message.roomId }
-                 roomUserStore.remove(message.roomId)
-                 roomChatMessageStore.remove(message.roomId)
-               }
-              } else if(membership == "ban"){
-                  val name=message.content.getString("displayname","")
-                  users.removeFirstMatching { it.displayName.get().equals(name) }
-                } else {
-                    println("Unhandled membership: $membership")
-                  }
+              users.removeFirstMatching { it.id == message.userId }
+              if (messageFromLoggedInUser) {
+                roomStateList.removeFirstMatching { it.id == message.roomId }
+                roomUserStore.remove(message.roomId)
+                roomChatMessageStore.remove(message.roomId)
+              }
+            } else if (membership == "ban") {
+              val name = message.content.getString("displayname", "")
+              users.removeFirstMatching { it.displayName.get().equals(name) }
+            } else {
+              println("Unhandled membership: $membership")
+            }
           }
         }
-        "m.room.aliases"-> {
+        "m.room.aliases" -> {
 
           val existingRoomState = roomStateList.firstOrNull { it.id == message.roomId }
           if (existingRoomState != null) {
-            val alias=message.content.getArray("aliases").map { it.asString() }
-            val length=alias.toString().length()
-            val aliases=alias.toString().substring(1,length-1)
+            val alias = message.content.getArray("aliases").map { it.asString() }
+            val length = alias.toString().length()
+            val aliases = alias.toString().substring(1, length - 1)
             existingRoomState.aliases.add(aliases)
           }
         }
@@ -219,7 +219,7 @@ class AppState() {
     }
 
     roomUserStore.values().forEach { users ->
-      FXCollections.sort(users, { a, b -> b.weight.get() - a.weight.get()})
+      FXCollections.sort(users, { a, b -> b.weight.get() - a.weight.get() })
     }
   }
 
@@ -233,8 +233,8 @@ class AppState() {
     })
   }
 
-  synchronized public fun getCurrRoomNameOrId():String? {
-    val currRoom = roomStateList.firstOrNull{it.id==currRoomId.get()}
+  synchronized public fun getCurrRoomNameOrId(): String? {
+    val currRoom = roomStateList.firstOrNull { it.id == currRoomId.get() }
     val alias = currRoom?.aliases?.firstOrNull()
     val name = alias ?: currRoom?.id
     return name
@@ -268,7 +268,7 @@ class AppState() {
 }
 
 fun <T> ObservableList<T>.removeFirstMatching(predicate: (T) -> Boolean) {
-  for ((index,value) in this.withIndex()) {
+  for ((index, value) in this.withIndex()) {
     if (predicate(value)) {
       this.remove(index)
       break;
@@ -277,6 +277,6 @@ fun <T> ObservableList<T>.removeFirstMatching(predicate: (T) -> Boolean) {
 
 }
 
-fun JsonObject.getStringOrElse(name:String, elseValue:String):String {
- return get(name)?.let { if (it.isString()) it.asString() else null } ?: elseValue
+fun JsonObject.getStringOrElse(name: String, elseValue: String): String {
+  return get(name)?.let { if (it.isString()) it.asString() else null } ?: elseValue
 }

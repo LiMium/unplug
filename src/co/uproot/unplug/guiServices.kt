@@ -1,16 +1,15 @@
 package co.uproot.unplug
 
-import javafx.concurrent.Service
 import javafx.beans.property.SimpleStringProperty
+import javafx.concurrent.Service
 import javafx.concurrent.Task
-
 
 
 class LoginService() : Service<LoginResult>() {
   val userName = SimpleStringProperty("")
   val password = SimpleStringProperty("")
 
-  var baseURL:String = ""
+  var baseURL: String = ""
 
   override fun createTask(): Task<LoginResult>? {
     val api = API(baseURL)
@@ -32,13 +31,13 @@ class LoginService() : Service<LoginResult>() {
   }
 }
 
-class RoomSyncService(val loginResult: LoginResult,val roomId:String) : Service<SyncResult>() {
+class RoomSyncService(val loginResult: LoginResult, val roomId: String) : Service<SyncResult>() {
   override fun createTask(): Task<SyncResult>? {
     val api = loginResult.api
     return object : Task<SyncResult>() {
       override fun call(): SyncResult? {
         updateMessage("Syncing")
-        val result = api.roomInitialSync(loginResult.accessToken,roomId)
+        val result = api.roomInitialSync(loginResult.accessToken, roomId)
         if (result == null) {
           updateMessage("Sync Failed")
           failed()
@@ -77,12 +76,12 @@ class SyncService(val loginResult: LoginResult) : Service<SyncResult>() {
 }
 
 
-class CreateRoomService(val loginResult : LoginResult, val roomname:String,val visibility:String) : Service<CreateRoomResult>() {
+class CreateRoomService(val loginResult: LoginResult, val roomname: String, val visibility: String) : Service<CreateRoomResult>() {
 
   override fun createTask(): Task<CreateRoomResult>? {
     return object : Task<CreateRoomResult>() {
       override fun call(): CreateRoomResult? {
-        val createRoomResult = loginResult.api.createRoom(loginResult.accessToken,roomname,visibility)
+        val createRoomResult = loginResult.api.createRoom(loginResult.accessToken, roomname, visibility)
         if (createRoomResult == null) {
           updateMessage("Failed")
           failed()
@@ -96,7 +95,7 @@ class CreateRoomService(val loginResult : LoginResult, val roomname:String,val v
   }
 }
 
-class JoinRoomService(val loginResult : LoginResult,val room: RoomIdentifier) : Service<JoinRoomResult>() {
+class JoinRoomService(val loginResult: LoginResult, val room: RoomIdentifier) : Service<JoinRoomResult>() {
 
   override fun createTask(): Task<JoinRoomResult>? {
     return object : Task<JoinRoomResult>() {
@@ -115,31 +114,31 @@ class JoinRoomService(val loginResult : LoginResult,val room: RoomIdentifier) : 
   }
 }
 
-class InviteMemberService(val loginResult : LoginResult,val room: RoomIdentifier,val memName:String) : Service<InviteMemResult>() {
+class InviteMemberService(val loginResult: LoginResult, val room: RoomIdentifier, val memName: String) : Service<InviteMemResult>() {
 
- override fun createTask(): Task<InviteMemResult>? {
-   return object : Task<InviteMemResult>() {
-     override fun call(): InviteMemResult? {
-       val inviteResult = loginResult.api.invitingMember(loginResult.accessToken,room,memName)
-       if (inviteResult == null) {
-         updateMessage("Failed")
-         failed()
-         return null
-       }  else {
-         updateMessage("")
-         return inviteResult
-       }
-     }
-   }
- }
+  override fun createTask(): Task<InviteMemResult>? {
+    return object : Task<InviteMemResult>() {
+      override fun call(): InviteMemResult? {
+        val inviteResult = loginResult.api.invitingMember(loginResult.accessToken, room, memName)
+        if (inviteResult == null) {
+          updateMessage("Failed")
+          failed()
+          return null
+        } else {
+          updateMessage("")
+          return inviteResult
+        }
+      }
+    }
+  }
 }
 
-class BanRoomService(val loginResult : LoginResult, val room:RoomIdentifier,val memId:String, val appState: AppState) : Service<BanRoomResult>() {
+class BanRoomService(val loginResult: LoginResult, val room: RoomIdentifier, val memId: String, val appState: AppState) : Service<BanRoomResult>() {
 
   override fun createTask(): Task<BanRoomResult>? {
     return object : Task<BanRoomResult>() {
       override fun call(): BanRoomResult? {
-        val banRoomResult = loginResult.api.banningMember(loginResult.accessToken,room,memId,appState)
+        val banRoomResult = loginResult.api.banningMember(loginResult.accessToken, room, memId, appState)
         if (banRoomResult == null) {
           updateMessage("Failed")
           failed()
@@ -153,12 +152,12 @@ class BanRoomService(val loginResult : LoginResult, val room:RoomIdentifier,val 
   }
 }
 
-class LeaveRoomService(val loginResult : LoginResult,val roomIdentifier:RoomIdentifier) : Service<LeaveRoomResult>() {
+class LeaveRoomService(val loginResult: LoginResult, val roomIdentifier: RoomIdentifier) : Service<LeaveRoomResult>() {
 
   override fun createTask(): Task<LeaveRoomResult>? {
     return object : Task<LeaveRoomResult>() {
       override fun call(): LeaveRoomResult? {
-        val leaveResult = loginResult.api.leavingRoom(loginResult.accessToken,roomIdentifier)
+        val leaveResult = loginResult.api.leavingRoom(loginResult.accessToken, roomIdentifier)
         if (leaveResult == null) {
           updateMessage("Failed")
           failed()
@@ -172,8 +171,8 @@ class LeaveRoomService(val loginResult : LoginResult,val roomIdentifier:RoomIden
   }
 }
 
-class EventService(val loginResult : LoginResult) : Service<EventResult>() {
-  private var from : String? = null
+class EventService(val loginResult: LoginResult) : Service<EventResult>() {
+  private var from: String? = null
 
   override fun createTask(): Task<EventResult>? {
     return object : Task<EventResult>() {
@@ -193,9 +192,9 @@ class EventService(val loginResult : LoginResult) : Service<EventResult>() {
   }
 }
 
-class SendResult(eventId:String)
+class SendResult(eventId: String)
 
-class SendMessageService(val loginResult : LoginResult, val roomId:String, val msg: String) : Service<SendResult>() {
+class SendMessageService(val loginResult: LoginResult, val roomId: String, val msg: String) : Service<SendResult>() {
 
   override fun createTask(): Task<SendResult>? {
     return object : Task<SendResult>() {

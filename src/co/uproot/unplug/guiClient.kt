@@ -46,7 +46,7 @@ class UnplugApp : Application() {
         getEditor().text = serverInit
       }
     }
-    val password = PasswordField() {text = passwordInit}
+    val password = PasswordField() { text = passwordInit }
     password.setOnAction {
       val serverText = serverCombo.editor.text()
       startLogin(loginService, serverText, stage!!)
@@ -59,7 +59,7 @@ class UnplugApp : Application() {
     loginService.userName.bind(userId.textProperty())
     loginService.password.bind(password.textProperty())
 
-    val loginForm = GridPane(padding=Insets(left=10.0)) {
+    val loginForm = GridPane(padding = Insets(left = 10.0)) {
       hgap = 10.0
       vgap = 10.0
       addRow(0, Label("User id: "), userId)
@@ -80,18 +80,18 @@ class UnplugApp : Application() {
     }
     loginStatus.visible { loginStatus.text().length() > 0 }
 
-    Stage(stage, title="unplug") {
+    Stage(stage, title = "unplug") {
       scene = Scene {
         stylesheets.add("/chat.css")
-        root = VBox(spacing=10.0, padding=Insets(10.0)) {
-          + loginForm
-          + loginStatus
+        root = VBox(spacing = 10.0, padding = Insets(10.0)) {
+          +loginForm
+          +loginStatus
         }
       }
     }.show()
   }
 
-  private fun startLogin(loginService: LoginService, serverText:String, stage: Stage) {
+  private fun startLogin(loginService: LoginService, serverText: String, stage: Stage) {
     // logginIn u true
     loginService.baseURL = "$serverText/"
     loginService.setOnSucceeded {
@@ -126,7 +126,7 @@ class UnplugApp : Application() {
     userListView.itemsProperty().bind(appState.currUserList)
 
     userListView.setCellFactory (object : Callback<javafx.scene.control.ListView<UserState>, ListCell<UserState>> {
-      override fun call(list:javafx.scene.control.ListView<UserState>):ListCell<UserState> {
+      override fun call(list: javafx.scene.control.ListView<UserState>): ListCell<UserState> {
         return UserFormatCell()
       }
     })
@@ -134,7 +134,7 @@ class UnplugApp : Application() {
     val roomListView = ListView(appState.roomNameList)
 
     val selectedRoomIndexProperty = roomListView.selectionModel.selectedIndexProperty()
-    EasyBind.subscribe(selectedRoomIndexProperty, {indexNum ->
+    EasyBind.subscribe(selectedRoomIndexProperty, { indexNum ->
       val index = indexNum as Int
       if (index >= 0) {
         val room = appState.roomStateList.get(index)
@@ -151,7 +151,7 @@ class UnplugApp : Application() {
     messageListView.itemsProperty().bind(appState.currChatMessageList)
 
     messageListView.setCellFactory (object : Callback<javafx.scene.control.ListView<Message>, ListCell<Message>> {
-      override fun call(list:javafx.scene.control.ListView<Message>):ListCell<Message> {
+      override fun call(list: javafx.scene.control.ListView<Message>): ListCell<Message> {
         return MessageFormatCell(messageListView.widthProperty().add(-20), appState)
       }
     })
@@ -159,31 +159,30 @@ class UnplugApp : Application() {
     val messageInputView = TextField()
     messageInputView.setOnAction {
       val msg = messageInputView.text
-      if(msg!="")
-      {
+      if (msg != "") {
         messageInputView.text = ""
         val sendService = SendMessageService(loginResult, appState.currRoomId.get(), msg)
         sendService.start()
       }
     }
-    val createRoomButton=createRoom(loginResult)
-    val joinRoomButton=joinRoom(loginResult)
+    val createRoomButton = createRoom(loginResult)
+    val joinRoomButton = joinRoom(loginResult)
 
-    val roomOptionView=VBox(spacing=10.0) {
+    val roomOptionView = VBox(spacing = 10.0) {
       +createRoomButton
       +joinRoomButton
     }
 
-    val roomList=VBox(spacing = 10.0){
+    val roomList = VBox(spacing = 10.0) {
       +roomListView
       +roomOptionView
     }
 
-    val inviteMemberButton=inviteMember(loginResult)
-    val banMemberButton=banMember(loginResult)
-    val leaveRoomButton=leaveRoom(loginResult)
+    val inviteMemberButton = inviteMember(loginResult)
+    val banMemberButton = banMember(loginResult)
+    val leaveRoomButton = leaveRoom(loginResult)
 
-    val optionView = HBox(spacing=10.0){
+    val optionView = HBox(spacing = 10.0) {
       +inviteMemberButton
       +banMemberButton
       +leaveRoomButton
@@ -200,10 +199,10 @@ class UnplugApp : Application() {
     javafx.scene.layout.VBox.setVgrow(messageListView, Priority.ALWAYS)
 
 
-    val chatView = HBox(spacing=10.0, padding=Insets(10.0)) {
-      + roomList
-      + messageView
-      + userListView
+    val chatView = HBox(spacing = 10.0, padding = Insets(10.0)) {
+      +roomList
+      +messageView
+      +userListView
     }
 
     javafx.scene.layout.VBox.setVgrow(chatView, Priority.ALWAYS)
@@ -211,9 +210,9 @@ class UnplugApp : Application() {
     stage.setScene(Scene {
       stylesheets.add("/chat.css")
 
-      root = VBox(spacing=10.0, padding=Insets(10.0)) {
-        + statusLabel
-        + chatView
+      root = VBox(spacing = 10.0, padding = Insets(10.0)) {
+        +statusLabel
+        +chatView
       }
     })
 
@@ -236,16 +235,16 @@ class UnplugApp : Application() {
     syncService.start()
   }
 
-  fun createRoom(loginResult:LoginResult):javafx.scene.control.Button {
+  fun createRoom(loginResult: LoginResult): javafx.scene.control.Button {
     val createRoomButton = Button("Create Room")
     createRoomButton.setOnAction {
-      val stage1=Stage()
-      Stage(stage1, title = "Creating Room"){
-        scene=Scene {
+      val stage1 = Stage()
+      Stage(stage1, title = "Creating Room") {
+        scene = Scene {
           stylesheets.add("/chat.css")
           val name = Label("Enter name :")
-          val textfld= TextField()
-          val visibility=RadioButton("public")
+          val textfld = TextField()
+          val visibility = RadioButton("public")
           val create = Button("Create")
           create.setOnAction {
             val createRoom1 = CreateRoomService(loginResult, textfld.text(), visibility.getText())
@@ -253,13 +252,13 @@ class UnplugApp : Application() {
             stage1.close()
           }
           create.disable {
-            textfld.text().length()==0
+            textfld.text().length() == 0
           }
           val hb = HBox(spacing = 10.0) {
             +name
             +textfld
           }
-          root = VBox(spacing = 15.0,padding =Insets(60.0,60.0,150.0,60.0)) {
+          root = VBox(spacing = 15.0, padding = Insets(60.0, 60.0, 150.0, 60.0)) {
             +visibility
             +hb
             +create
@@ -270,30 +269,30 @@ class UnplugApp : Application() {
     return createRoomButton
   }
 
-  private fun getRoomIdentifier(room: String):RoomIdentifier? {
+  private fun getRoomIdentifier(room: String): RoomIdentifier? {
     val first = room.charAt(0)
-    if(first == '#'){
+    if (first == '#') {
       return RoomName(room)
-    } else if (first == '!'){
+    } else if (first == '!') {
       return RoomId(room)
     } else {
       return null
     }
   }
 
-  fun joinRoom(loginResult:LoginResult):javafx.scene.control.Button {
-    val joinRoomButton=Button("Join Room")
+  fun joinRoom(loginResult: LoginResult): javafx.scene.control.Button {
+    val joinRoomButton = Button("Join Room")
     joinRoomButton.setOnAction {
-      val stage2=Stage()
-      Stage(stage2, title = "Joining Room"){
-        scene=Scene{
+      val stage2 = Stage()
+      Stage(stage2, title = "Joining Room") {
+        scene = Scene {
           stylesheets.add("/chat.css")
-          val lblName=Label("Enter room name ")
-          val name=TextField()
-          val join=Button("Join")
+          val lblName = Label("Enter room name ")
+          val name = TextField()
+          val join = Button("Join")
           join.setOnAction {
             val room = getRoomIdentifier(name.text)
-            if(room != null) {
+            if (room != null) {
               try {
                 val joinRoom = JoinRoomService(loginResult, room)
                 joinRoom.start()
@@ -307,13 +306,13 @@ class UnplugApp : Application() {
             }
           }
           join.disable {
-            name.text().length()==0
+            name.text().length() == 0
           }
-          val hbox=HBox(spacing=10.0){
+          val hbox = HBox(spacing = 10.0) {
             +lblName
             +name
           }
-          root=VBox(spacing=10.0,padding = Insets(80.0,60.0,60.0,60.0)){
+          root = VBox(spacing = 10.0, padding = Insets(80.0, 60.0, 60.0, 60.0)) {
             +hbox
             +join
           }
@@ -323,18 +322,18 @@ class UnplugApp : Application() {
     return joinRoomButton
   }
 
-  fun inviteMember(loginResult:LoginResult):javafx.scene.control.Button {
-    val inviteMemberButton=Button("Invite Member")
+  fun inviteMember(loginResult: LoginResult): javafx.scene.control.Button {
+    val inviteMemberButton = Button("Invite Member")
     inviteMemberButton.setOnAction {
-      val stage4=Stage()
-      Stage(stage4,title = "Inviting member"){
-        scene =Scene{
+      val stage4 = Stage()
+      Stage(stage4, title = "Inviting member") {
+        scene = Scene {
           stylesheets.add("/chat.css")
-          val lblroomName=Label("Enter room name")
-          val roomName=TextField(appState.getCurrRoomNameOrId()?:"")
-          val lblmemId=Label("Enter member Id :")
-          val memberId=TextField()
-          val invite=Button("Invite")
+          val lblroomName = Label("Enter room name")
+          val roomName = TextField(appState.getCurrRoomNameOrId() ?: "")
+          val lblmemId = Label("Enter member Id :")
+          val memberId = TextField()
+          val invite = Button("Invite")
           invite.setOnAction {
             val room = getRoomIdentifier(roomName.text)
             if (room != null) {
@@ -346,17 +345,17 @@ class UnplugApp : Application() {
             }
           }
           invite.disable {
-            roomName.text().length()==0 || memberId.text().length()==0
+            roomName.text().length() == 0 || memberId.text().length() == 0
           }
-          val hbox1=HBox(spacing = 20.0){
+          val hbox1 = HBox(spacing = 20.0) {
             +lblroomName
             +roomName
           }
-          val hbox2=HBox(spacing = 15.0){
+          val hbox2 = HBox(spacing = 15.0) {
             +lblmemId
             +memberId
           }
-          root=VBox(spacing = 15.0,padding = Insets(80.0,60.0,60.0,60.0)){
+          root = VBox(spacing = 15.0, padding = Insets(80.0, 60.0, 60.0, 60.0)) {
             +hbox1
             +hbox2
             +invite
@@ -368,18 +367,18 @@ class UnplugApp : Application() {
     return inviteMemberButton
   }
 
-  fun banMember(loginResult:LoginResult):javafx.scene.control.Button {
-    val banMemberButton=Button("Ban Member")
+  fun banMember(loginResult: LoginResult): javafx.scene.control.Button {
+    val banMemberButton = Button("Ban Member")
     banMemberButton.setOnAction {
-      val stage3=Stage()
-      Stage(stage3, title = "Banning Member"){
-        scene=Scene{
+      val stage3 = Stage()
+      Stage(stage3, title = "Banning Member") {
+        scene = Scene {
           stylesheets.add("/chat.css")
-          val lblroomName=Label("Enter room name")
-          val roomName=TextField(appState.getCurrRoomNameOrId()?:"")
-          val lblMId=Label("Enter member Id")
-          val memId=TextField()
-          val ban=Button("Ban")
+          val lblroomName = Label("Enter room name")
+          val roomName = TextField(appState.getCurrRoomNameOrId() ?: "")
+          val lblMId = Label("Enter member Id")
+          val memId = TextField()
+          val ban = Button("Ban")
           ban.setOnAction {
             val room = getRoomIdentifier(roomName.text)
             if (room != null) {
@@ -391,17 +390,17 @@ class UnplugApp : Application() {
             }
           }
           ban.disable {
-            roomName.text().length()==0 || memId.text().length()==0
+            roomName.text().length() == 0 || memId.text().length() == 0
           }
-          val hbox1=HBox(spacing = 20.0){
+          val hbox1 = HBox(spacing = 20.0) {
             +lblroomName
             +roomName
           }
-          val hbox2=HBox(spacing = 23.0){
+          val hbox2 = HBox(spacing = 23.0) {
             +lblMId
             +memId
           }
-          root=VBox(spacing = 15.0,padding = Insets(80.0,60.0,60.0,60.0)){
+          root = VBox(spacing = 15.0, padding = Insets(80.0, 60.0, 60.0, 60.0)) {
             +hbox1
             +hbox2
             +ban
@@ -412,19 +411,19 @@ class UnplugApp : Application() {
     return banMemberButton
   }
 
-  fun leaveRoom(loginResult:LoginResult):javafx.scene.control.Button{
-    val leaveRoomButton=Button("Leave Room")
+  fun leaveRoom(loginResult: LoginResult): javafx.scene.control.Button {
+    val leaveRoomButton = Button("Leave Room")
     leaveRoomButton.setOnAction {
-      val stage4=Stage()
-      Stage(stage4, title = "Leaving Room"){
-        scene=Scene{
+      val stage4 = Stage()
+      Stage(stage4, title = "Leaving Room") {
+        scene = Scene {
           stylesheets.add("/chat.css")
-          val lblname=Label("Enter room name")
-          val name=TextField(appState.getCurrRoomNameOrId()?:"")
-          val leave=Button("Leave")
+          val lblname = Label("Enter room name")
+          val name = TextField(appState.getCurrRoomNameOrId() ?: "")
+          val leave = Button("Leave")
           leave.setOnAction {
             val room = getRoomIdentifier(name.text)
-            if(room != null) {
+            if (room != null) {
               val leaveRoomSer = LeaveRoomService(loginResult, room)
               leaveRoomSer.start()
               stage4.close()
@@ -433,13 +432,13 @@ class UnplugApp : Application() {
             }
           }
           leave.disable {
-            name.text().length()==0
+            name.text().length() == 0
           }
-          val hbox=HBox(spacing = 10.0){
+          val hbox = HBox(spacing = 10.0) {
             +lblname
             +name
           }
-          root=VBox(spacing = 10.0, padding = Insets(80.0,60.0,60.0,60.0)){
+          root = VBox(spacing = 10.0, padding = Insets(80.0, 60.0, 60.0, 60.0)) {
             +hbox
             +leave
           }
@@ -449,14 +448,14 @@ class UnplugApp : Application() {
     return leaveRoomButton
   }
 
-  fun alert(msg:String){
-    val stage01=Stage()
-    Stage(stage01, title="Alert!!"){
-      scene=Scene{
+  fun alert(msg: String) {
+    val stage01 = Stage()
+    Stage(stage01, title = "Alert!!") {
+      scene = Scene {
         stylesheets.add("/chat.css")
-        val msg=Label(msg)
-        val btn=Button("Close")
-        root=VBox(spacing = 15.0,padding =Insets(60.0,60.0,150.0,60.0)) {
+        val msg = Label(msg)
+        val btn = Button("Close")
+        root = VBox(spacing = 15.0, padding = Insets(60.0, 60.0, 150.0, 60.0)) {
           +msg
           +btn
         }
@@ -483,7 +482,7 @@ class UnplugApp : Application() {
     eventsService.setOnSucceeded {
       val eventResult = eventsService.getValue()
       if (eventResult != null) {
-        appState.processEventsResult(eventResult, loginResult.api,loginResult)
+        appState.processEventsResult(eventResult, loginResult.api, loginResult)
       }
       eventsService.restart()
     }
@@ -498,7 +497,7 @@ class UnplugApp : Application() {
 
 object ImageCache {
 
-  final private class ImageEntry(val url:String, val img: Image)
+  final private class ImageEntry(val url: String, val img: Image)
 
   private val imageStore = ConcurrentHashMap<String, ImageEntry>()
 
@@ -506,19 +505,19 @@ object ImageCache {
     override fun apply(id: String, oldImg: ImageEntry?): ImageEntry {
       val saneURL = if (url.isEmpty()) "/default-avatar-32.png" else url
       val imgEntry = if (oldImg == null) {
-        ImageEntry(saneURL,  Image(saneURL, 32.0, 32.0, true, true, true))
+        ImageEntry(saneURL, Image(saneURL, 32.0, 32.0, true, true, true))
       } else {
         if (oldImg.url == saneURL) {
           oldImg
         } else {
-          ImageEntry(saneURL,  Image(saneURL, 32.0, 32.0, true, true, true))
+          ImageEntry(saneURL, Image(saneURL, 32.0, 32.0, true, true, true))
         }
       }
       return imgEntry
     }
   }
 
-  fun getOrCreate(userId:String, url:String):Image {
+  fun getOrCreate(userId: String, url: String): Image {
     return imageStore.compute(userId, ImageMakerAndUpdater(url)).img
   }
 }
@@ -532,7 +531,7 @@ class UserFormatCell() : ListCell<UserState>() {
     } else {
       val typing = us.typing.get()
       val present = us.present.get()
-      val typingStr = if(typing) "⌨" else ""
+      val typingStr = if (typing) "⌨" else ""
       val id = Text("${us.id} $typingStr") {
         getStyleClass().add("unplug-text")
         getStyleClass().add("user-id")
@@ -541,7 +540,7 @@ class UserFormatCell() : ListCell<UserState>() {
         getStyleClass().add("unplug-text")
         getStyleClass().add("user-displayname")
       }
-      val userDetails =  VBox(spacing=2.0, padding=Insets(0.0)) {
+      val userDetails = VBox(spacing = 2.0, padding = Insets(0.0)) {
         +id
         +displayName
       }
@@ -560,9 +559,9 @@ class UserFormatCell() : ListCell<UserState>() {
         setAlignment(Pos.CENTER)
       }
 
-      val graphic =  HBox(spacing=10.0, padding=Insets(2.0)) {
-          +avatarWrap
-          +userDetails
+      val graphic = HBox(spacing = 10.0, padding = Insets(2.0)) {
+        +avatarWrap
+        +userDetails
 
         setAlignment(Pos.CENTER_LEFT)
 
