@@ -40,7 +40,7 @@ data class UserState(val id: String) {
 
 }
 
-data class RoomState(val id:String, val aliases: MutableList<String>)
+data class RoomState(val id:String, val aliases: ObservableList<String>)
 
 // TODO: Avoid storing entire user state for every room. Instead have a common store and a lookup table
 class AppState() {
@@ -49,7 +49,7 @@ class AppState() {
   val currChatMessageList = SimpleObjectProperty<ObservableList<Message>>()
   val currUserList = SimpleObjectProperty<ObservableList<UserState>>()
 
-  val roomStateList = SimpleListProperty<RoomState>(FXCollections.observableArrayList())
+  val roomStateList = SimpleListProperty(FXCollections.observableArrayList<RoomState>({roomState -> array(roomState.aliases)}))
   val roomNameList = EasyBind.map(roomStateList, { room: RoomState -> room.aliases.firstOrNull() ?: room.id })
 
   private final val roomChatMessageStore = HashMap<String, ObservableList<Message>>()
@@ -59,24 +59,28 @@ class AppState() {
     result.rooms.stream().forEach { room ->
       val existingRoomState = roomStateList.firstOrNull { it.id == room.id }
       if (existingRoomState == null) {
-        roomStateList.add(RoomState(room.id, LinkedList(room.aliases)))
+        val aliasList = FXCollections.observableArrayList<String>()
+        aliasList.addAll(room.aliases)
+        roomStateList.add(RoomState(room.id, aliasList))
       } else {
         existingRoomState.aliases.addAll(room.aliases)
       }
-
       getRoomChatMessages(room.id).setAll(room.chatMessages())
       val users = getRoomUsers(room.id)
       room.states.forEach { state: State ->
         when (state.type) {
           "m.room.member" -> {
-            if (state.content.getString("membership", "") == "join") {
+            val membership = state.content.getString("membership", "")
+            if (membership == "join") {
               val us = UserState(state.userId)
               val displayName = state.content.getStringOrElse("displayname", state.userId)
               us.displayName.setValue(displayName)
               us.avatarURL.setValue(api.getAvatarThumbnailURL(state.content.getStringOrElse("avatar_url","")))
               users.add(us)
-            } else {
+            } else if (membership == "leave"){
               users.removeFirstMatching { it.id == state.userId }
+            } else {
+              println("Not handled membership message: $membership")
             }
           }
           "m.room.aliases" -> {
@@ -126,7 +130,7 @@ class AppState() {
     }
   }
 
-  fun processEventsResult(eventResult: EventResult, api:API) {
+  fun processEventsResult(eventResult: EventResult, api:API,loginResult:LoginResult) {
     eventResult.messages.forEach { message ->
       when (message.type) {
         "m.typing" -> {
@@ -151,24 +155,59 @@ class AppState() {
         }
         "m.room.member" -> {
           if (message.roomId != null) {
+            val messageFromLoggedInUser = loginResult.userId==message.userId
+
             val users = getRoomUsers(message.roomId)
-            getRoomChatMessages(message.roomId).add(message)
-            if (message.content.getString("membership", "") == "join") {
-              val existingUser = users.firstOrNull { it.id == message.userId }
-              val displayName = message.content.get("displayname")?.let { if (it.isString()) it.asString() else null } ?: message.userId
-              val avatarURL = api.getAvatarThumbnailURL(message.content.getStringOrElse("avatar_url", ""))
-              val user = if (existingUser == null) {
-                val us = UserState(message.userId)
-                users.add(us)
-                us
+
+            val membership = message.content.getString("membership", "")
+
+            if (membership == "join") {
+              if(messageFromLoggedInUser) {
+                val roomService=RoomSyncService(loginResult,message.roomId)
+                roomService.setOnSucceeded {
+                  val value=roomService.getValue()
+                  if (value != null) {
+                    processSyncResult(value, loginResult.api)
+                  }
+                }
+                roomService.start()
               } else {
-                existingUser
+                val existingUser = users.firstOrNull { it.id == message.userId }
+                val displayName = message.content.get("displayname")?.let { if (it.isString()) it.asString() else null } ?: message.userId
+                val avatarURL = api.getAvatarThumbnailURL(message.content.getStringOrElse("avatar_url", ""))
+                val user = if (existingUser == null) {
+                  val us = UserState(message.userId)
+                  users.add(us)
+                  us
+                } else {
+                  existingUser
+                }
+                user.displayName.set(displayName)
+                user.avatarURL.set(avatarURL)
               }
-              user.displayName.set(displayName)
-              user.avatarURL.set(avatarURL)
-            } else {
-              users.removeFirstMatching { it.id == message.userId }
-            }
+            } else if (membership == "leave") {
+               users.removeFirstMatching { it.id == message.userId }
+               if(messageFromLoggedInUser) {
+                 roomStateList.removeFirstMatching { it.id == message.roomId }
+                 roomUserStore.remove(message.roomId)
+                 roomChatMessageStore.remove(message.roomId)
+               }
+              } else if(membership == "ban"){
+                  val name=message.content.getString("displayname","")
+                  users.removeFirstMatching { it.displayName.get().equals(name) }
+                } else {
+                    println("Unhandled membership: $membership")
+                  }
+          }
+        }
+        "m.room.aliases"-> {
+
+          val existingRoomState = roomStateList.firstOrNull { it.id == message.roomId }
+          if (existingRoomState != null) {
+            val alias=message.content.getArray("aliases").map { it.asString() }
+            val length=alias.toString().length()
+            val aliases=alias.toString().substring(1,length-1)
+            existingRoomState.aliases.add(aliases)
           }
         }
         else -> {
@@ -192,6 +231,11 @@ class AppState() {
     return getOrCreate(roomUserStore, roomId, {
       FXCollections.observableArrayList<UserState>({ userState -> array(userState.present, userState.displayName, userState.avatarURL, userState.typing, userState.weight) })
     })
+  }
+
+  synchronized public fun getCurrRoomName():String? {
+     val m= roomStateList.firstOrNull{it.id==currRoomId.get()}?.aliases?.firstOrNull()
+     return m
   }
 
   init {

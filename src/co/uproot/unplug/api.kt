@@ -8,6 +8,7 @@ import java.io.IOException
 import com.eclipsesource.json.JsonObject
 import java.net.URLEncoder
 import com.eclipsesource.json.JsonArray
+import java.util.ArrayList
 
 data class AccessToken(val token:String)
 
@@ -50,8 +51,13 @@ fun JsonObject.getArray(name:String):JsonArray {
 }
 
 class SyncResult(val rooms: List<Room>, val presence: List<Message>)
-
 class EventResult(val messages: List<Message>, val end: String)
+class CreateRoomResult(val roomAlias: String, val roomId: String)
+class JoinRoomResult(val roomId: String, val servers: String)
+class InviteMemResult(val result: String?)
+class LeaveRoomResult(val result:String?)
+class BanRoomResult(val result:String?)
+data class LoginResult(val userId:String,val accessToken: AccessToken, val api: API)
 
 // TODO: Change API to be fully type-safe, and not return JSON objects
 class API(val baseURL: String) {
@@ -67,7 +73,7 @@ class API(val baseURL: String) {
 
   private final val net = Net(client)
 
-  fun login(username: String, password: String): AccessToken? {
+  fun login(username: String, password: String): LoginResult? {
     try {
       val postBody = """
       {"type":"m.login.password", "user":"$username", "password":"$password"}
@@ -76,11 +82,79 @@ class API(val baseURL: String) {
       val responseStr = net.doPost(apiURL + "login", postBody)
       val jsonObj = JsonObject.readFrom(responseStr)
       val tokenStr = jsonObj.getString("access_token", null)
-      return tokenStr?.let { AccessToken(it) }
+      val userId=jsonObj.getString("user_id",null)
+      if(tokenStr!=null && userId!=null) {
+        return LoginResult(userId, AccessToken(tokenStr), this)
+      } else {
+        return null
+      }
     } catch(e : IOException) {
       e.printStackTrace()
       return null;
     }
+  }
+
+ fun createRoom(accessToken: AccessToken, roomname:String,visibility:String):CreateRoomResult{
+   val post="""
+   {"room_alias_name":"$roomname", "visibility":"$visibility"}
+   """
+   val responseStr= net.doPost(apiURL + "createRoom?access_token=${accessToken.token}",post)
+   val jsonObj = JsonObject.readFrom(responseStr)
+   val roomAlias=jsonObj.getString("room_alias",null)
+   val roomId=jsonObj.getString("room_id",null)
+   return  CreateRoomResult(roomAlias,roomId)
+  }
+
+ fun joiningRoon(accessToken:AccessToken,roomName:String):JoinRoomResult{
+   val nameEncode=URLEncoder.encode(roomName, "UTF-8")
+   val responseStr= net.doPost(apiURL + "join/$nameEncode?access_token=${accessToken.token}","")
+   val jsonObj = JsonObject.readFrom(responseStr)
+   val roomId=jsonObj.getString("room_id",null)
+   val servers=jsonObj.getString("servers",null)
+   return JoinRoomResult(roomId,servers)
+ }
+
+ fun invitingMember(accessToken:AccessToken,roomName:String,memId:String):InviteMemResult{
+   val roomId=getRoomId(accessToken,roomName)
+   val roomIdEncode=URLEncoder.encode(roomId,"UTF-8")
+   val rmIdEncode=roomIdEncode.substring(3)
+   val post="""
+   {"user_id":"$memId"}"""
+   val responseStr=net.doPost(apiURL + "rooms/state!$rmIdEncode/invite?access_token=${accessToken.token}",post)
+   return InviteMemResult(responseStr)
+ }
+
+  fun banningMember(accessToken:AccessToken,roomName:String,memId:String, appState: AppState):BanRoomResult{
+    val roomId=getRoomId(accessToken,roomName)
+    val ban="ban"
+    val roomIdEncode=URLEncoder.encode(roomId, "UTF-8")
+    val rmIdEncode=roomIdEncode.substring(3)
+    val memIdEncode=URLEncoder.encode(memId, "UTF-8")
+    if(roomId!=null) {
+    val mediaURL1 = baseURL + "/_matrix/media/v1/"
+    val badUrl=mediaURL1+"thumbnail/"
+      val url = appState.getRoomUsers(roomId)
+      val a = url.firstOrNull { it.id == memId }
+      if (a != null) {
+        val displayName = a.displayName.getValue()
+        val url1 = a.avatarURL.getValue()
+        val url2 = url1.toString().replaceAll(badUrl, "mcx://")
+        val finalUrl = url2.substringBefore("?")
+        val header = """
+        {"avatar_url":"$finalUrl","displayname":"$displayName","membership":"$ban"}"""
+        val responseStr = net.doPut(apiURL + "rooms/!$rmIdEncode/state/m.room.member/$memIdEncode?access_token=${accessToken.token}",header)
+        return BanRoomResult(responseStr)
+      }
+    }
+    return BanRoomResult(null)
+  }
+
+  fun leavingRoom(accessToken:AccessToken,roomName:String):LeaveRoomResult{
+    val roomId=getRoomId(accessToken,roomName)
+    val roomIdEncode=URLEncoder.encode(roomId, "UTF-8")
+    val rmIdEncode=roomIdEncode.substring(3)
+    val responseStr=net.doPost(apiURL + "rooms/!$rmIdEncode/leave?access_token=${accessToken.token}","{}")
+    return LeaveRoomResult(null)
   }
 
   fun getRoomId(accessToken: AccessToken, roomAlias: String): String? {
@@ -103,6 +177,34 @@ class API(val baseURL: String) {
     val jsonObj = JsonObject.readFrom(responseStr)
     val eventId = jsonObj.getString("event_id", null)
     return eventId
+  }
+
+  fun roomInitialSync(accessToken: AccessToken,roomId:String):SyncResult? {
+    val roomIdEncode=URLEncoder.encode(roomId, "UTF-8")
+    val rmIdEncode=roomIdEncode.substring(3)
+    val responseStr = net.doGet(apiURL + "rooms/!$rmIdEncode/initialSync?access_token=${accessToken.token}")
+    if (responseStr == null) {
+      return null
+    }
+    val room = JsonObject.readFrom(responseStr)
+    val roomObj = room.asObject()
+    val messages = roomObj.getObject("messages")
+    val chunks = messages.getArray("chunk").map{it.asObject()}
+    val messageList = parseChunks(chunks)
+    val states = roomObj.getArray("state")
+    val aliasStates = states.filter {it.asObject().getString("type", null) == "m.room.aliases" }
+    val aliases = aliasStates.flatMap {
+      it.asObject().getObject("content").getArray("aliases").map{it.asString()}
+    }
+    val stateList = states.map { state ->
+      val so = state.asObject()
+      State(so.getString("type", null), so.getLong("origin_server_ts", 0L), so.getString("user_id", null), so.getObject("content"))
+    }
+    val arrayList=ArrayList<Room>()
+    val a=Room(roomObj.getString("room_id", null), aliases, messageList.toLinkedList(), stateList)
+    arrayList.add(a)
+    val presence = parseChunks(room.getArray("presence").map{it.asObject()})
+    return SyncResult(arrayList,presence)
   }
 
   fun initialSync(accessToken: AccessToken):SyncResult? {
@@ -195,7 +297,21 @@ private class Net(val client: OkHttpClient) {
 
     val response = client.newCall(request).execute()
     if (!response.isSuccessful()) throw IOException("Unexpected code " + response)
-
     return response.body().string()
+  }
+
+  fun doPut(url:String, json:String):String {
+    val request = Request.Builder()
+            .url(url)
+            .addHeader("User-Agent", uaString)
+            .put(RequestBody.create(jsonMediaType, json))
+            .build()
+
+    val response = client.newCall(request).execute()
+    if (!response.isSuccessful()) {
+      throw IOException("Unexpected code " + response)
+    } else {
+      return response.body().string()
+    }
   }
 }
