@@ -287,7 +287,7 @@ class UnplugApp : Application() {
                 joinRoom.start()
               } catch(e: Exception) {
                 e.printStackTrace()
-                alert("Room is private")
+                alert("Room joining failed; room might be private")
               }
               stage2.close()
             } else {
