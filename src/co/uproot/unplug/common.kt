@@ -72,8 +72,8 @@ class AppState() {
           "m.room.member" -> {
             val membership = state.content.getString("membership", "")
             if (membership == "join") {
-              val us = UserState(state.userId)
-              val displayName = state.content.getStringOrElse("displayname", state.userId)
+              val us = UserState(state.stateKey)
+              val displayName = state.content.getStringOrElse("displayname", state.stateKey)
               us.displayName.setValue(displayName)
               us.avatarURL.setValue(api.getAvatarThumbnailURL(state.content.getStringOrElse("avatar_url", "")))
               users.add(us)

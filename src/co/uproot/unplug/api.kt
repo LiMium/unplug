@@ -24,6 +24,7 @@ data class State(
   val type: String,
   val ts: Long,
   val userId: String,
+  val stateKey: String,
   val content: JsonObject) {
 }
 
@@ -213,7 +214,7 @@ class API(val baseURL: String) {
     }
     val stateList = states.map { state ->
       val so = state.asObject()
-      State(so.getString("type", null), so.getLong("origin_server_ts", 0L), so.getString("user_id", null), so.getObject("content"))
+      State(so.getString("type", null), so.getLong("origin_server_ts", 0L), so.getString("user_id", null), so.getString("state_key", null), so.getObject("content"))
     }
     val arrayList = ArrayList<Room>()
     val a = Room(roomObj.getString("room_id", null), aliases, messageList.toLinkedList(), stateList)
@@ -241,7 +242,7 @@ class API(val baseURL: String) {
       }
       val stateList = states.map { state ->
         val so = state.asObject()
-        State(so.getString("type", null), so.getLong("origin_server_ts", 0L), so.getString("user_id", null), so.getObject("content"))
+        State(so.getString("type", null), so.getLong("origin_server_ts", 0L), so.getString("user_id", null), so.getString("state_key", null), so.getObject("content"))
       }
       Room(roomObj.getString("room_id", null), aliases, messageList.toLinkedList(), stateList)
     }
