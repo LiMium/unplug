@@ -25,10 +25,17 @@
   -fx-fill: #eee;
 }
 
+.unplug-text-muted {
+  -fx-fill: #888;
+}
+
 .chat-message-text {
   -fx-fill: #fff;
 }
 
+.chat-message-id {
+  -fx-fill: #ccc;
+}
 .chat-message-meta {
   -fx-fill: #999;
 }

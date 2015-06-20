@@ -625,14 +625,20 @@ class MessageFormatCell(val containerWidthProperty: DoubleBinding, val appState:
               setAlignment(Pos.CENTER)
             }
 
-            val id = Text(userId)
-            val time = Text(time.toString())
+            val id = Text(userId) {
+              getStyleClass().add("chat-message-id")
+            }
+            val time = Text(time.toString()) {
+              getStyleClass().add("unplug-text-muted")
+            }
             val userDetails = VBox(spacing = 2.0, padding = Insets(0.0)) {
               +id
               +time
             }
 
-            val body = Text(msgBody)
+            val body = Text(msgBody) {
+              getStyleClass().add("chat-message-text")
+            }
             val bodyFlow = TextFlow(body)
 
             val graphic = HBox(spacing = 10.0, padding = Insets(2.0)) {
@@ -642,9 +648,6 @@ class MessageFormatCell(val containerWidthProperty: DoubleBinding, val appState:
             }
             graphic.prefWidthProperty().bind(containerWidthProperty)
 
-            id.getStyleClass().add("chat-message-text")
-            time.getStyleClass().add("chat-message-text")
-            body.getStyleClass().add("chat-message-text")
             setGraphic(graphic)
           }
 
