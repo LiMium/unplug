@@ -102,7 +102,7 @@ class UnplugApp : Application() {
         loginService.reset()
       } else {
         stage.title = "[unplug] " + loginService.userName.get() + " : " + serverText
-        postLogin(stage, loginResult,serverText)
+        postLogin(stage, loginResult)
       }
     }
     loginService.setOnFailed {
@@ -115,7 +115,7 @@ class UnplugApp : Application() {
 
   val appState = AppState()
 
-  fun postLogin(stage: Stage, loginResult: LoginResult,serverText:String) {
+  fun postLogin(stage: Stage, loginResult: LoginResult) {
     val statusLabel = Label()
     statusLabel.textProperty().bind(status)
     statusLabel.visible { status.get().length() > 0 }
