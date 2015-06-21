@@ -165,12 +165,10 @@ class UnplugApp : Application() {
         sendService.start()
       }
     }
-    val createRoomButton = createRoom(loginResult)
-    val joinRoomButton = joinRoom(loginResult)
 
     val roomOptionView = VBox(spacing = 10.0) {
-      +createRoomButton
-      +joinRoomButton
+      +createRoom(loginResult)
+      +joinRoom(loginResult)
     }
 
     val roomList = VBox(spacing = 10.0) {
@@ -178,14 +176,10 @@ class UnplugApp : Application() {
       +roomOptionView
     }
 
-    val inviteMemberButton = inviteMember(loginResult)
-    val banMemberButton = banMember(loginResult)
-    val leaveRoomButton = leaveRoom(loginResult)
-
     val optionView = HBox(spacing = 10.0) {
-      +inviteMemberButton
-      +banMemberButton
-      +leaveRoomButton
+      +inviteMember(loginResult)
+      +banMember(loginResult)
+      +leaveRoom(loginResult)
     }
 
     val messageView = VBox(spacing = 10.0) {
