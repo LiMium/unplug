@@ -191,6 +191,7 @@ class UnplugApp : Application() {
     javafx.scene.layout.HBox.setHgrow(messageView, Priority.ALWAYS)
     javafx.scene.layout.HBox.setHgrow(messageInputView, Priority.ALWAYS)
     javafx.scene.layout.VBox.setVgrow(messageListView, Priority.ALWAYS)
+    javafx.scene.layout.VBox.setVgrow(roomListView, Priority.ALWAYS)
 
 
     val chatView = HBox(spacing = 10.0, padding = Insets(10.0)) {
