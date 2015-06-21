@@ -584,34 +584,32 @@ class UserFormatCell() : ListCell<UserState>() {
 
 
 class MessageFormatCell(val containerWidthProperty: DoubleBinding, val appState: AppState) : ListCell<Message>() {
+  private class MessageView(val userId: String, val time: java.util.Date, val msgBody: String, val meta: Boolean)
+
   override fun updateItem(message: Message?, empty: Boolean) {
     super.updateItem(message, empty)
     if (message == null || empty) {
       setGraphic(null)
     } else {
       val d = java.util.Date(message.ts)
-      val (userId, time, msgBody) =
+      val m =
         when (message.type) {
-          "m.room.create" -> Triple(message.content.getString("creator", "(unexpected missing creator)"), d, "Room created")
+          "m.room.create" -> MessageView(message.content.getString("creator", "(unexpected missing creator)"), d, "Room created", true)
           "m.room.member" -> {
             val status = if (message.content.getString("membership", "") == "join") "Joined" else "Left"
-            Triple(message.userId, d, status)
+            MessageView(message.userId, d, status, true)
           }
-          "m.room.message" -> Triple(message.userId, d, message.content.getString("body", "(unexpected empty body)"))
+          "m.room.message" -> MessageView(message.userId, d, message.content.getString("body", "(unexpected empty body)"), false)
           else -> {
-            Triple("Unknown message type: ${message.type}", "", "")
+            MessageView(message.userId, d, "Unhandled message type: ${message.type}", true)
           }
         }
 
       if (message.roomId != null) {
         val users = appState.getRoomUsers(message.roomId)
         val messageUser = users.firstOrNull { it.id == message.userId }
-        if (messageUser == null) {
-          setGraphic(Text("User ${message.userId} not found in the room!") {
-            getStyleClass().add("chat-message-meta")
-          })
-        } else {
-          if (messageUser.id == message.userId) {
+        val avatarWrap =
+          if (messageUser != null) {
             val url = messageUser.avatarURL
             val image = ImageCache.getOrCreate(message.userId, url.get())
             val avatar = ImageView(image) {
@@ -620,40 +618,48 @@ class MessageFormatCell(val containerWidthProperty: DoubleBinding, val appState:
             }
 
             // The wrap ensures that the avatar image doesn't collapse when its width is smaller than 32
-            val avatarWrap = StackPane() {
+            StackPane() {
               +avatar
 
               setMinWidth(32.0)
               setAlignment(Pos.CENTER)
             }
 
-            val id = Text(userId) {
-              getStyleClass().add("chat-message-id")
+          } else {
+            StackPane() {
+              setMinWidth(32.0)
             }
-            val time = Text(time.toString()) {
-              getStyleClass().add("unplug-text-muted")
-            }
-            val userDetails = VBox(spacing = 2.0, padding = Insets(0.0)) {
-              +id
-              +time
-            }
-
-            val body = Text(msgBody) {
-              getStyleClass().add("chat-message-text")
-            }
-            val bodyFlow = TextFlow(body)
-
-            val graphic = HBox(spacing = 10.0, padding = Insets(2.0)) {
-              +avatarWrap
-              +userDetails
-              +bodyFlow
-            }
-            graphic.prefWidthProperty().bind(containerWidthProperty)
-
-            setGraphic(graphic)
           }
 
+        val id = Text(m.userId) {
+          getStyleClass().add("chat-message-id")
         }
+        val time = Text(m.time.toString()) {
+          getStyleClass().add("unplug-text-muted")
+        }
+        val userDetails = VBox(spacing = 2.0, padding = Insets(0.0)) {
+          +id
+          +time
+        }
+
+        val body = Text(m.msgBody) {
+          if (m.meta) {
+            getStyleClass().add("chat-message-meta")
+          } else {
+            getStyleClass().add("chat-message-text")
+          }
+        }
+        val bodyFlow = TextFlow(body)
+
+        val graphic = HBox(spacing = 10.0, padding = Insets(2.0)) {
+          +avatarWrap
+          +userDetails
+          +bodyFlow
+        }
+        graphic.prefWidthProperty().bind(containerWidthProperty)
+
+        setGraphic(graphic)
+
       } else {
         throw IllegalStateException("Room id of message is null: " + message)
       }
