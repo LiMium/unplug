@@ -2,7 +2,7 @@
 
 A cross-platform [matrix](https://matrix.org) client.
 
-![screenshot](https://raw.githubusercontent.com/wiki/UprootLabs/unplug/media/unplug-0.1.5.png)
+![screenshot](https://raw.githubusercontent.com/wiki/UprootLabs/unplug/media/unplug-0.1.6.png)
 
 ### How to run
 Download the `.jar` file from the [release page](https://github.com/UprootLabs/unplug/releases). Then,
