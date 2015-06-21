@@ -39,7 +39,7 @@ data class Room(val id: String, val aliases: List<String>, val messages: Mutable
   }
 
   fun chatMessages(): List<Message> {
-    return messages.stream().filter({ isChatMessage(it) }).toList()
+    return messages.asSequence().filter({ isChatMessage(it) }).toList()
   }
 
   fun getAliasOrId(): String {
@@ -156,7 +156,7 @@ class API(val baseURL: String) {
         val url2 = url1.toString().replaceAll(badUrl, "mcx://")
         val finalUrl = url2.substringBefore("?")
         val header = """
-        {"avatar_url":"$finalUrl","displayname":"$displayName","membership":"$ban"}"""
+        {"avatar_url":"$finalUrl","displayName":"$displayName","membership":"$ban"}"""
         val responseStr = net.doPut(apiURL + "rooms/!$rmIdEncode/state/m.room.member/$memIdEncode?access_token=${accessToken.token}", header)
         return BanRoomResult(responseStr)
       }

@@ -448,10 +448,10 @@ class UnplugApp : Application() {
     Stage(stage01, title = "Alert!!") {
       scene = Scene {
         stylesheets.add("/chat.css")
-        val msg = Label(msg)
+        val msgLabel = Label(msg)
         val btn = Button("Close")
         root = VBox(spacing = 15.0, padding = Insets(60.0, 60.0, 150.0, 60.0)) {
-          +msg
+          +msgLabel
           +btn
         }
         btn.setOnAction {

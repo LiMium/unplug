@@ -49,14 +49,14 @@ class AppState() {
   val currChatMessageList = SimpleObjectProperty<ObservableList<Message>>()
   val currUserList = SimpleObjectProperty<ObservableList<UserState>>()
 
-  val roomStateList = SimpleListProperty(FXCollections.observableArrayList<RoomState>({ roomState -> array(roomState.aliases) }))
+  val roomStateList = SimpleListProperty(FXCollections.observableArrayList<RoomState>({ roomState -> arrayOf(roomState.aliases) }))
   val roomNameList = EasyBind.map(roomStateList, { room: RoomState -> room.aliases.firstOrNull() ?: room.id })
 
   private final val roomChatMessageStore = HashMap<String, ObservableList<Message>>()
   private final val roomUserStore = HashMap<String, ObservableList<UserState>>()
 
   synchronized fun processSyncResult(result: SyncResult, api: API) {
-    result.rooms.stream().forEach { room ->
+    result.rooms.asSequence().forEach { room ->
       val existingRoomState = roomStateList.firstOrNull { it.id == room.id }
       if (existingRoomState == null) {
         val aliasList = FXCollections.observableArrayList<String>()
@@ -234,7 +234,7 @@ class AppState() {
 
   synchronized public fun getRoomUsers(roomId: String): ObservableList<UserState> {
     return getOrCreate(roomUserStore, roomId, {
-      FXCollections.observableArrayList<UserState>({ userState -> array(userState.present, userState.displayName, userState.avatarURL, userState.typing, userState.weight) })
+      FXCollections.observableArrayList<UserState>({ userState -> arrayOf(userState.present, userState.displayName, userState.avatarURL, userState.typing, userState.weight) })
     })
   }
 
