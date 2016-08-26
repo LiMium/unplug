@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.jetbrains.kotlin.core.KOTLIN_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/okhttp-2.2.0.jar"/>
+	<classpathentry kind="lib" path="lib/okio-1.2.0.jar"/>
+	<classpathentry kind="lib" path="lib/easybind-1.0.3.jar"/>
+	<classpathentry kind="lib" path="lib/minimal-json-0.9.2.jar"/>
+	<classpathentry kind="lib" path="lib/kotlinfx-core.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
