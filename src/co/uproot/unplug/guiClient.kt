@@ -4,7 +4,9 @@ import javafx.application.Application
 import javafx.stage.Stage
 import kotlinfx.builders.*
 import kotlinfx.kalium.*
-import kotlinfx.properties.*
+import kotlinfx.abbreviations.*
+import kotlinfx.bindings.*
+// import kotlinfx.properties.*
 import javafx.beans.property.SimpleStringProperty
 import org.fxmisc.easybind.EasyBind
 import javafx.scene.control.ListCell
@@ -37,7 +39,8 @@ class UnplugApp : Application() {
     // TODO: Use the auto-complete box from here: https://github.com/privatejava/javafx-autocomplete-field
     val serverCommonUrls = FXCollections.observableArrayList("https://matrix.org", "http://localhost:8008")
     val serverCombo = ComboBox(serverCommonUrls) {
-      editable = true
+      // editable = true
+		  setEditable(true)
 
       if (serverInit == null) {
         getSelectionModel().select(0)
@@ -75,9 +78,9 @@ class UnplugApp : Application() {
 
     loginForm.disableProperty().bind(loginService.stateProperty().isNotEqualTo(Worker.State.READY))
     login.disable {
-      userId.text().length() == 0 || serverCombo.editor.text().length() == 0
+      userId.text().length == 0 || serverCombo.editor.text().length == 0
     }
-    loginStatus.visible { loginStatus.text().length() > 0 }
+    loginStatus.visible { loginStatus.text().length > 0 }
 
     Stage(stage, title = "unplug") {
       scene = Scene {
@@ -117,7 +120,7 @@ class UnplugApp : Application() {
   fun postLogin(stage: Stage, loginResult: LoginResult) {
     val statusLabel = Label()
     statusLabel.textProperty().bind(status)
-    statusLabel.visible { status.get().length() > 0 }
+    statusLabel.visible { status.get().length > 0 }
 
     val userListView = ListView(appState.currUserList.get()) {
       getStyleClass().add("user-list")
@@ -246,7 +249,7 @@ class UnplugApp : Application() {
             stage1.close()
           }
           create.disable {
-            textfld.text().length() == 0
+            textfld.text().length == 0
           }
           val hb = HBox(spacing = 10.0) {
             +name
@@ -264,7 +267,7 @@ class UnplugApp : Application() {
   }
 
   private fun getRoomIdentifier(room: String): RoomIdentifier? {
-    val first = room.charAt(0)
+    val first = room.get(0)
     if (first == '#') {
       return RoomName(room)
     } else if (first == '!') {
@@ -300,7 +303,7 @@ class UnplugApp : Application() {
             }
           }
           join.disable {
-            name.text().length() == 0
+            name.text().length == 0
           }
           val hbox = HBox(spacing = 10.0) {
             +lblName
@@ -339,7 +342,7 @@ class UnplugApp : Application() {
             }
           }
           invite.disable {
-            roomName.text().length() == 0 || memberId.text().length() == 0
+            roomName.text().length == 0 || memberId.text().length == 0
           }
           val hbox1 = HBox(spacing = 20.0) {
             +lblroomName
@@ -384,7 +387,7 @@ class UnplugApp : Application() {
             }
           }
           ban.disable {
-            roomName.text().length() == 0 || memId.text().length() == 0
+            roomName.text().length == 0 || memId.text().length == 0
           }
           val hbox1 = HBox(spacing = 20.0) {
             +lblroomName
@@ -426,7 +429,7 @@ class UnplugApp : Application() {
             }
           }
           leave.disable {
-            name.text().length() == 0
+            name.text().length == 0
           }
           val hbox = HBox(spacing = 10.0) {
             +lblname
