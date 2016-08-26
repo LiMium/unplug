@@ -20,17 +20,16 @@ import java.util.concurrent.ConcurrentHashMap
 import javafx.scene.image.Image
 import java.util.function.BiFunction
 
-
 fun main(args: Array<String>) {
-  Application.launch(javaClass<UnplugApp>(), *args)
+  Application.launch(UnplugApp::class.java, *args)
 }
 
 class UnplugApp : Application() {
   override fun start(stage: Stage?) {
     val args = getParameters().getRaw()
-    val userIdInit = if (args.size() > 0) args[0] else ""
-    val serverInit = if (args.size() > 1) args[1] else null
-    val passwordInit = if (args.size() > 2) args[2] else ""
+    val userIdInit = if (args.size > 0) args[0] else ""
+    val serverInit = if (args.size > 1) args[1] else null
+    val passwordInit = if (args.size > 2) args[2] else ""
 
     val loginService = LoginService()
     val userId = TextField(userIdInit) { promptText = "Eg: bob" }

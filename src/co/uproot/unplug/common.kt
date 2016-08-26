@@ -55,7 +55,8 @@ class AppState() {
   private final val roomChatMessageStore = HashMap<String, ObservableList<Message>>()
   private final val roomUserStore = HashMap<String, ObservableList<UserState>>()
 
-  synchronized fun processSyncResult(result: SyncResult, api: API) {
+  @Synchronized
+  fun processSyncResult(result: SyncResult, api: API) {
     result.rooms.asSequence().forEach { room ->
       val existingRoomState = roomStateList.firstOrNull { it.id == room.id }
       if (existingRoomState == null) {
@@ -120,7 +121,7 @@ class AppState() {
 
     result.presence.forEach { p ->
       if (p.type == "m.presence") {
-        roomUserStore.values().forEach { users ->
+        roomUserStore.values.forEach { users ->
           val userId = p.content.getString("user_id", null)
           users.firstOrNull { it.id == userId }?.let {
             it.present.set(p.content.getString("presence", "") == "online")
@@ -130,7 +131,7 @@ class AppState() {
       }
     }
 
-    roomUserStore.values().forEach { users ->
+    roomUserStore.values.forEach { users ->
       FXCollections.sort(users, { a, b -> b.weight.get() - a.weight.get() })
     }
   }
@@ -140,12 +141,12 @@ class AppState() {
       when (message.type) {
         "m.typing" -> {
           val usersTyping = message.content.getArray("user_ids").map { it.asString() }
-          roomUserStore.values().forEach { users ->
+          roomUserStore.values.forEach { users ->
             users.forEach { it.typing.set(usersTyping.contains(it.id)) }
           }
         }
         "m.presence" -> {
-          roomUserStore.values().forEach { users ->
+          roomUserStore.values.forEach { users ->
             val userId = message.content.getString("user_id", null)
             users.firstOrNull { it.id == userId }?.let {
               it.present.set(message.content.getString("presence", "") == "online")
@@ -210,7 +211,7 @@ class AppState() {
           val existingRoomState = roomStateList.firstOrNull { it.id == message.roomId }
           if (existingRoomState != null) {
             val alias = message.content.getArray("aliases").map { it.asString() }
-            val length = alias.toString().length()
+            val length = alias.toString().length
             val aliases = alias.toString().substring(1, length - 1)
             existingRoomState.aliases.add(aliases)
           }
@@ -223,22 +224,22 @@ class AppState() {
       }
     }
 
-    roomUserStore.values().forEach { users ->
+    roomUserStore.values.forEach { users ->
       FXCollections.sort(users, { a, b -> b.weight.get() - a.weight.get() })
     }
   }
 
-  synchronized private fun getRoomChatMessages(roomId: String): ObservableList<Message> {
+  @Synchronized private fun getRoomChatMessages(roomId: String): ObservableList<Message> {
     return getOrCreate(roomChatMessageStore, roomId, { FXCollections.observableArrayList<Message>() })
   }
 
-  synchronized public fun getRoomUsers(roomId: String): ObservableList<UserState> {
+  @Synchronized public fun getRoomUsers(roomId: String): ObservableList<UserState> {
     return getOrCreate(roomUserStore, roomId, {
       FXCollections.observableArrayList<UserState>({ userState -> arrayOf(userState.present, userState.displayName, userState.avatarURL, userState.typing, userState.weight) })
     })
   }
 
-  synchronized public fun getCurrRoomNameOrId(): String? {
+  @Synchronized public fun getCurrRoomNameOrId(): String? {
     val currRoom = roomStateList.firstOrNull { it.id == currRoomId.get() }
     val alias = currRoom?.aliases?.firstOrNull()
     val name = alias ?: currRoom?.id
@@ -258,7 +259,7 @@ class AppState() {
 
   }
 
-  synchronized private fun getOrCreate<T>(store: HashMap<String, ObservableList<T>>, roomId: String, creator: () -> ObservableList<T>): ObservableList<T> {
+  @Synchronized private fun <T>getOrCreate(store: HashMap<String, ObservableList<T>>, roomId: String, creator: () -> ObservableList<T>): ObservableList<T> {
     val messages = store.get(roomId)
     if (messages == null) {
       val newList = SimpleListProperty(creator())
@@ -275,7 +276,7 @@ class AppState() {
 fun <T> ObservableList<T>.removeFirstMatching(predicate: (T) -> Boolean) {
   for ((index, value) in this.withIndex()) {
     if (predicate(value)) {
-      this.remove(index)
+      this.removeAt(index)
       break;
     }
   }

@@ -43,7 +43,7 @@ data class Room(val id: String, val aliases: List<String>, val messages: Mutable
   }
 
   fun getAliasOrId(): String {
-    if (aliases.size() > 0) {
+    if (aliases.size > 0) {
       return aliases.get(0)
     } else {
       return id
@@ -153,7 +153,9 @@ class API(val baseURL: String) {
       if (a != null) {
         val displayName = a.displayName.getValue()
         val url1 = a.avatarURL.getValue()
-        val url2 = url1.toString().replaceAll(badUrl, "mcx://")
+        // TODO: val url2 = url1.toString().replaceAll(badUrl, "mcx://")
+        val url2 = url1.toString()
+		
         val finalUrl = url2.substringBefore("?")
         val header = """
         {"avatar_url":"$finalUrl","displayName":"$displayName","membership":"$ban"}"""
@@ -225,7 +227,7 @@ class API(val baseURL: String) {
       State(so.getString("type", null), so.getLong("origin_server_ts", 0L), so.getString("user_id", null), so.getString("state_key", null), so.getObject("content"))
     }
     val arrayList = ArrayList<Room>()
-    val a = Room(roomObj.getString("room_id", null), aliases, messageList.toLinkedList(), stateList)
+    val a = Room(roomObj.getString("room_id", null), aliases, messageList.toMutableList(), stateList)
     arrayList.add(a)
     val presence = parseChunks(room.getArray("presence").map { it.asObject() })
     return SyncResult(arrayList, presence)
@@ -252,7 +254,7 @@ class API(val baseURL: String) {
         val so = state.asObject()
         State(so.getString("type", null), so.getLong("origin_server_ts", 0L), so.getString("user_id", null), so.getString("state_key", null), so.getObject("content"))
       }
-      Room(roomObj.getString("room_id", null), aliases, messageList.toLinkedList(), stateList)
+      Room(roomObj.getString("room_id", null), aliases, messageList.toMutableList(), stateList)
     }
     val presence = parseChunks(jsonObj.getArray("presence").map { it.asObject() })
     return SyncResult(roomList, presence)
@@ -280,6 +282,14 @@ class API(val baseURL: String) {
   private val mxcRegex = "^mxc://(.*)/([^#]*)(#auto)?$".toRegex()
 
   fun getAvatarThumbnailURL(mxcURL: String): String {
+	  /*
+	val matchResult = mxcRegex.matchEntire(mxcURL)
+	  matchResult.let{ r ->
+      val serverName = r.groupValues.get(1)
+      val mediaId = r.groupValues.get(2)
+      mediaURL + "thumbnail/$serverName/$mediaId?width=24&height=24"
+	  }
+
     val matcher = mxcRegex.matcher(mxcURL)
     if (matcher.matches()) {
       val serverName = matcher.group(1)
@@ -288,6 +298,8 @@ class API(val baseURL: String) {
     } else {
       return ""
     }
+ */
+	  return ""
   }
 }
 

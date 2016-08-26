@@ -13,7 +13,6 @@ class LoginService() : Service<LoginResult>() {
 
   override fun createTask(): Task<LoginResult>? {
     val api = API(baseURL)
-
     return object : Task<LoginResult>() {
       override fun call(): LoginResult? {
         updateMessage("Logging In")
