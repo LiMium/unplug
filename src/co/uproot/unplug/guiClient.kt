@@ -1,4 +1,4 @@
-package co.uproot.unplug.gui
+package co.uproot.unplug
 
 import javafx.application.Application
 import javafx.stage.Stage
