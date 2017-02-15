@@ -9,6 +9,7 @@ import okhttp3.RequestBody
 import java.io.IOException
 import java.net.URLEncoder
 import java.util.ArrayList
+import java.util.concurrent.atomic.AtomicLong
 
 data class AccessToken(val token: String)
 
@@ -75,8 +76,8 @@ class RoomName(val name: String) : RoomIdentifier
 
 // TODO: Change API to be fully type-safe, and not return JSON objects
 class API(val baseURL: String) {
-  val apiURL = baseURL + "_matrix/client/api/v1/"
-  val mediaURL = baseURL + "_matrix/media/v1/"
+  val apiURL = baseURL + "_matrix/client/r0/"
+  val mediaURL = baseURL + "_matrix/media/r0/"
 
   private final val client = OkHttpClient()
 
@@ -196,12 +197,16 @@ class API(val baseURL: String) {
     }
   }
 
+  private var txnIdUnique = AtomicLong()
+
   fun sendMessage(accessToken: AccessToken, roomId: String, message: String): String {
     val postBody = """
       {"msgtype":"m.text", "body":"$message"}
     """
 
-    val responseStr = net.doPost(apiURL + "rooms/$roomId/send/m.room.message?access_token=${accessToken.token}", postBody)
+    val txnId = txnIdUnique.addAndGet(1L)
+
+    val responseStr = net.doPut(apiURL + "rooms/$roomId/send/m.room.message/$txnId?access_token=${accessToken.token}", postBody)
     val jsonObj = JsonObject.readFrom(responseStr)
     val eventId = jsonObj.getString("event_id", null)
     return eventId
