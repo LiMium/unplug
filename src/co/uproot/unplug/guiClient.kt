@@ -94,7 +94,6 @@ class UnplugApp : Application() {
   }
 
   private fun startLogin(loginService: LoginService, serverText: String, stage: Stage) {
-    // logginIn u true
     loginService.baseURL = "$serverText/"
     loginService.setOnSucceeded {
       val loginResult = loginService.getValue();
