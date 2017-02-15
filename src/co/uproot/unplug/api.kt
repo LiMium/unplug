@@ -2,10 +2,10 @@ package co.uproot.unplug
 
 import com.eclipsesource.json.JsonArray
 import com.eclipsesource.json.JsonObject
-import com.squareup.okhttp.MediaType
-import com.squareup.okhttp.OkHttpClient
-import com.squareup.okhttp.Request
-import com.squareup.okhttp.RequestBody
+import okhttp3.MediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
 import java.io.IOException
 import java.net.URLEncoder
 import java.util.ArrayList
@@ -81,8 +81,10 @@ class API(val baseURL: String) {
   private final val client = OkHttpClient()
 
   init {
+	  /*
     client.setFollowSslRedirects(false)
     client.setFollowRedirects(false)
+ */
   }
 
   private final val net = Net(client)
