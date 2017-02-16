@@ -325,23 +325,27 @@ private class Net(val client: OkHttpClient) {
   }
 
   fun doPost(url: String, json: String): String {
-    val request = Request.Builder()
-      .url(url)
-      .addHeader("User-Agent", uaString)
-      .post(RequestBody.create(jsonMediaType, json))
-      .build()
-
-    val response = client.newCall(request).execute()
-    if (!response.isSuccessful()) throw IOException("Unexpected code " + response)
-    return response.body().string()
+    return doVerb("post", url, json)
   }
 
   fun doPut(url: String, json: String): String {
-    val request = Request.Builder()
+    return doVerb("put", url, json)
+  }
+
+  fun doVerb(verb: String, url: String, json: String): String {
+    val requestBody = RequestBody.create(jsonMediaType, json)
+
+    val requestBuilder = Request.Builder()
       .url(url)
       .addHeader("User-Agent", uaString)
-      .put(RequestBody.create(jsonMediaType, json))
-      .build()
+
+    when (verb) {
+      "put" -> requestBuilder.put(requestBody)
+      "post" -> requestBuilder.post(requestBody)
+      else -> throw NotImplementedError("http verb is not yet implemented: $verb")
+    }
+
+    val request = requestBuilder.build()
 
     val response = client.newCall(request).execute()
     if (!response.isSuccessful()) {
