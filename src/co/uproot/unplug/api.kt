@@ -9,6 +9,7 @@ import okhttp3.RequestBody
 import java.io.IOException
 import java.net.URLEncoder
 import java.util.ArrayList
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 
 data class AccessToken(val token: String)
@@ -79,7 +80,13 @@ class API(val baseURL: String) {
   val apiURL = baseURL + "_matrix/client/r0/"
   val mediaURL = baseURL + "_matrix/media/r0/"
 
-  private final val client = OkHttpClient.Builder().followRedirects(false).followSslRedirects(false).build()
+  private final val client = OkHttpClient.Builder()
+          .followRedirects(false)
+          .followSslRedirects(false)
+          .connectTimeout(40, TimeUnit.SECONDS)
+          .readTimeout(40, TimeUnit.SECONDS)
+          .writeTimeout(40, TimeUnit.SECONDS)
+          .build()
 
   private final val net = Net(client)
 
