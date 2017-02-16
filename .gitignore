@@ -1,3 +1,4 @@
-/src/co/uproot/unplug/cliClient.kt
 /out/
 /bin/
+/build/
+/*.jar
