@@ -497,7 +497,7 @@ object ImageCache {
 
   private val imageStore = ConcurrentHashMap<String, ImageEntry>()
 
-  private class ImageMakerAndUpdater(val url: String) : BiFunction<String, ImageEntry, ImageEntry> {
+  private class ImageMakerAndUpdater(val url: String) : BiFunction<String, ImageEntry?, ImageEntry> {
     override fun apply(id: String, oldImg: ImageEntry?): ImageEntry {
       val saneURL = if (url.isEmpty()) "/default-avatar-32.png" else url
       val imgEntry = if (oldImg == null) {
@@ -514,7 +514,7 @@ object ImageCache {
   }
 
   fun getOrCreate(userId: String, url: String): Image {
-    return imageStore.compute(userId, ImageMakerAndUpdater(url)).img
+    return imageStore.compute(userId, ImageMakerAndUpdater(url))!!.img
   }
 }
 
